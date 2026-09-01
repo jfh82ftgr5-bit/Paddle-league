@@ -15,6 +15,9 @@
 
 .courtToolbar{display:flex;gap:8px;margin:10px 0}.courtToolbar .btn{flex:1}.mapWrap{border:1px solid #252a3b;border-radius:19px;overflow:hidden;background:#10131d;margin-bottom:13px}.mapBox{height:360px;width:100%;background:#0b0f17}.courtList .row{align-items:flex-start}.courtDistance{font-size:11px;font-weight:900;color:#7dd3fc}.courtMeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.courtTag{font-size:9px;padding:4px 7px;border-radius:999px;background:#1b2230;color:#b8c0d0}.locationNote{font-size:10px;color:#8e95a8;line-height:1.45;margin-top:8px}.selectedCourt{padding:10px 12px;border:1px solid #31516b;background:#0b1720;border-radius:12px;margin:10px 0}.selectedCourt b{display:block}.verifiedLoc{color:#45dd91;font-size:10px;font-weight:900}.courtActions{display:flex;gap:7px;margin-top:9px}.courtActions .btn{padding:8px 10px;font-size:10px}.leaflet-control-attribution{font-size:8px!important}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#111722;color:#fff}.leaflet-popup-content{margin:10px 12px}
 
+
+.verifyCard{padding:15px}.verifyGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.codeBig{font-size:30px;font-weight:950;letter-spacing:.16em;text-align:center;padding:14px;background:#080b12;border:1px dashed #58627a;border-radius:14px;margin:10px 0}.statusLine{display:flex;align-items:center;gap:8px;margin:8px 0}.statusDot{width:9px;height:9px;border-radius:50%;background:#f59e0b}.statusDot.live{background:#22c55e}.statusDot.official{background:#60a5fa}.onlineDot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}.teamRoster{background:#0b0f17;border:1px solid #252a3b;border-radius:13px;padding:10px;margin-top:8px}.teamRoster b{font-size:12px}.rosterPerson{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1d2230}.rosterPerson:last-child{border:0}.miniAvatar{width:28px;height:28px;border-radius:9px;background:#202638;display:grid;place-items:center;font-size:10px;font-weight:950}.matchCodeInput{text-transform:uppercase;letter-spacing:.12em;font-weight:900}.verifyNotice{padding:10px;border-radius:12px;background:#101827;border:1px solid #25334b;font-size:10px;color:#aeb8cb;line-height:1.45}.dangerBtn{background:#30171c;border-color:#69303c}.lobbyActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.lobbyActions .btn{flex:1}.onlineList .row{padding:10px 13px}.privacyNote{font-size:9px;color:#7f8799;margin-top:7px}
+
 </style>
 </head>
 <body>
@@ -41,7 +44,48 @@
   <div id="leagueDashboard" class="hidden"><div class="stats" id="stats"></div><div class="card"><div class="cardHead"><b>🏆 Leaderboard</b><span class="pill">LIVE</span></div><div id="leader"></div></div></div>
 </section>
 <section id="leagues" class="page"><div class="hero"><h1>Your Leagues</h1><p class="muted">Tap a league to switch to it.</p></div><div class="card" id="leagueList"></div></section>
-<section id="matches" class="page"><div class="hero"><h1>Matches</h1><p class="muted">Choose 1s, 2s, or 3s. Team ELO is based on the average rating of each side.</p><div id="matchCourtChip"></div><button class="btn primary full" onclick="toggleMatchForm(true)">＋ Start Match</button></div><div id="matchForm" class="card hidden" style="padding:16px"><b>Match Style</b><div class="modeBar"><button id="mode1s" class="modeBtn on" onclick="setMatchMode('1s')">1s<br><span class="sub">1v1</span></button><button id="mode2s" class="modeBtn" onclick="setMatchMode('2s')">2s<br><span class="sub">2v2</span></button><button id="mode3s" class="modeBtn" onclick="setMatchMode('3s')">3s<br><span class="sub">3v3</span></button></div><div class="teamGrid"><div class="teamBox"><h3>Team 1</h3><div id="team1Slots"></div><div class="field"><label>Score</label><input id="score1" type="number" min="0" value="11"></div></div><div class="teamBox"><h3>Team 2</h3><div id="team2Slots"></div><div class="field"><label>Score</label><input id="score2" type="number" min="0" value="7"></div></div></div><div class="actions"><button class="btn" onclick="toggleMatchForm(false)">Cancel</button><button class="btn primary" onclick="recordMatch()">Save Match</button></div></div><div class="card" id="matchList"></div></section>
+<section id="matches" class="page">
+<div class="hero">
+  <h1>Verified Matches</h1>
+  <p class="muted">Ranked matches use a live match code and opponent confirmation before ELO changes.</p>
+  <div id="matchCourtChip"></div>
+  <div class="verifyGrid" style="margin-top:11px">
+    <button class="btn primary" onclick="openCreateVerified()">＋ Create Match</button>
+    <button class="btn" onclick="openJoinVerified()">⌨ Join Code</button>
+  </div>
+</div>
+
+<div id="onlineCard" class="card onlineList">
+  <div class="cardHead"><b>🟢 Online in this league</b><span id="onlineCount" class="pill">0 ONLINE</span></div>
+  <div id="onlinePlayers"><div class="empty">Open a league to see who's online.</div></div>
+</div>
+
+<div id="verifiedCreate" class="card hidden verifyCard">
+  <b>Create Ranked Match</b>
+  <div class="sub">Pick the style, then share the generated code.</div>
+  <div class="modeBar">
+    <button id="vMode1s" class="modeBtn on" onclick="setVerifiedMode('1s')">1s<br><span class="sub">1v1</span></button>
+    <button id="vMode2s" class="modeBtn" onclick="setVerifiedMode('2s')">2s<br><span class="sub">2v2</span></button>
+    <button id="vMode3s" class="modeBtn" onclick="setVerifiedMode('3s')">3s<br><span class="sub">3v3</span></button>
+  </div>
+  <div class="verifyNotice" style="margin-top:10px">The creator starts on Team 1. Other players must join with the match code before the match becomes LIVE.</div>
+  <div class="actions"><button class="btn" onclick="closeVerifiedForms()">Cancel</button><button class="btn primary" onclick="createVerifiedMatch()">Create Code</button></div>
+</div>
+
+<div id="verifiedJoin" class="card hidden verifyCard">
+  <b>Join Ranked Match</b>
+  <div class="field"><label>Match Code</label><input id="verifiedJoinCode" class="matchCodeInput" maxlength="6" placeholder="ABC123"></div>
+  <div class="field"><label>Choose Team</label><select id="verifiedJoinTeam"><option value="2">Team 2</option><option value="1">Team 1</option></select></div>
+  <div class="actions"><button class="btn" onclick="closeVerifiedForms()">Cancel</button><button class="btn primary" onclick="joinVerifiedMatch()">Join Match</button></div>
+</div>
+
+<div id="verifiedLobby" class="card hidden verifyCard"></div>
+
+<div class="card">
+  <div class="cardHead"><b>Official Match History</b><span class="pill">VERIFIED ELO</span></div>
+  <div id="matchList"></div>
+</div>
+</section>
 
 <section id="courts" class="page">
   <div class="hero">
@@ -67,7 +111,7 @@ const SUPABASE_URL='https://aavkutlwngtgglqtjgia.supabase.co';
 const SUPABASE_KEY='sb_publishable_y6HVvDPbLLNmHdy8Y9Q2Pg_xtfqGDt8';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const tiers=[['Rookie',0,'r1'],['Rally',800,'r2'],['Challenger',1000,'r3'],['Elite',1200,'r4'],['Master',1400,'r5'],['Champion',1600,'r6'],['Legend',1800,'r7'],['Unreal',2000,'r8']];
-let authMode='signin',session=null,profile=null,myLeagues=[],currentLeague=null,members=[],matches=[],matchMode='1s',courtsMap=null,courtMarkers=[],nearbyCourts=[],userCoords=null,selectedCourt=null;
+let authMode='signin',session=null,profile=null,myLeagues=[],currentLeague=null,members=[],matches=[],matchMode='1s',verifiedMode='1s',activeMatchCode=null,activeMatch=null,onlinePlayers=[],presenceTimer=null,courtsMap=null,courtMarkers=[],nearbyCourts=[],userCoords=null,selectedCourt=null;
 const $=id=>document.getElementById(id);
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('on');setTimeout(()=>$('toast').classList.remove('on'),2600)}
 function setAuthMode(mode){authMode=mode;$('signInTab').classList.toggle('on',mode==='signin');$('signUpTab').classList.toggle('on',mode==='signup');$('displayNameField').classList.toggle('hidden',mode!=='signup');$('authButton').textContent=mode==='signin'?'Sign In':'Create Account';$('password').autocomplete=mode==='signin'?'current-password':'new-password'}
@@ -82,13 +126,86 @@ function renderLeagues(){const el=$('leagueList');el.innerHTML=myLeagues.length?
 async function selectLeague(id){currentLeague=myLeagues.find(x=>x.id===id)||null;renderLeagues();await loadCurrentLeague();showPage('home')}
 async function createLeague(){const name=$('newLeagueName').value.trim();if(!name)return toast('Give your league a name.');const {data,error}=await sb.rpc('create_league',{p_name:name,p_season_name:'Season 1'});if(error)return toast(error.message);$('newLeagueName').value='';currentLeague=data?.[0]||null;toast('League created!');await loadLeagues()}
 async function joinLeague(){const code=$('joinCode').value.trim().toUpperCase();if(code.length<4)return toast('Enter the league code.');const {data,error}=await sb.rpc('join_league_by_code',{p_code:code});if(error)return toast(error.message);$('joinCode').value='';currentLeague=data?.[0]||null;toast('Joined league!');await loadLeagues()}
-async function loadCurrentLeague(){if(!currentLeague){$('noLeague').classList.remove('hidden');$('leagueDashboard').classList.add('hidden');$('currentLeagueChip').innerHTML='';members=[];matches=[];renderMatches();return}$('noLeague').classList.add('hidden');$('leagueDashboard').classList.remove('hidden');$('seasonLabel').textContent=`${currentLeague.season_name.toUpperCase()} • RANKED`;$('currentLeagueChip').innerHTML=`<div class="leagueChip"><div class="grow"><b>${escapeHtml(currentLeague.name)}</b><div class="sub">Join code <span class="code">${currentLeague.join_code}</span></div></div><button class="btn" onclick="copyCode()">Copy</button></div>`;const [mr,xr]=await Promise.all([sb.rpc('get_league_members',{p_league_id:currentLeague.id}),sb.rpc('get_league_matches',{p_league_id:currentLeague.id})]);if(mr.error)return toast(mr.error.message);members=mr.data||[];matches=xr.data||[];renderDashboard();renderMatches()}
+async function loadCurrentLeague(){if(!currentLeague){$('noLeague').classList.remove('hidden');$('leagueDashboard').classList.add('hidden');$('currentLeagueChip').innerHTML='';members=[];matches=[];renderMatches();return}$('noLeague').classList.add('hidden');$('leagueDashboard').classList.remove('hidden');$('seasonLabel').textContent=`${currentLeague.season_name.toUpperCase()} • RANKED`;$('currentLeagueChip').innerHTML=`<div class="leagueChip"><div class="grow"><b>${escapeHtml(currentLeague.name)}</b><div class="sub">Join code <span class="code">${currentLeague.join_code}</span></div></div><button class="btn" onclick="copyCode()">Copy</button></div>`;const [mr,xr]=await Promise.all([sb.rpc('get_league_members',{p_league_id:currentLeague.id}),sb.rpc('get_league_matches',{p_league_id:currentLeague.id})]);if(mr.error)return toast(mr.error.message);members=mr.data||[];matches=xr.data||[];renderDashboard();renderMatches();await heartbeatPresence();await loadOnlinePlayers();if(activeMatchCode)await refreshVerifiedMatch()}
 function copyCode(){navigator.clipboard?.writeText(currentLeague.join_code);toast(`Copied ${currentLeague.join_code}`)}
-function renderDashboard(){const top=members[0];$('stats').innerHTML=`<div class="stat"><small>Players</small><b>${members.length}</b></div><div class="stat"><small>Matches</small><b>${matches.length}</b></div><div class="stat"><small>Leader</small><b>${top?escapeHtml(top.display_name):'—'}</b></div>`;$('leader').innerHTML=members.length?members.map((p,i)=>`<div class="row clickable" onclick="showPlayerProfile('${p.user_id}')"><div style="width:22px;color:#7e869a;font-weight:900">${i+1}</div><div class="avatar">${initials(p.display_name)}</div><div class="grow"><div class="name">${escapeHtml(p.display_name)}</div><div class="sub">${p.wins}-${p.losses} • ${pct(p.wins,p.losses)}% • PD ${signed(p.points_for-p.points_against)} • 🔥 ${p.streak}</div></div><div class="right"><div class="rating">${p.elo}</div>${badge(p.elo)}<div class="sub">View profile ›</div></div></div>`).join(''):'<div class="empty">No players yet.</div>';renderTeamSlots()}
-function setMatchMode(mode){matchMode=mode;['1s','2s','3s'].forEach(m=>$('mode'+m).classList.toggle('on',m===mode));renderTeamSlots()}
-function renderTeamSlots(){if(!currentLeague)return;const needed=matchMode==='1s'?1:matchMode==='2s'?2:3;const options=members.map(p=>`<option value="${p.user_id}">${escapeHtml(p.display_name)} (${p.elo})</option>`).join('');$('team1Slots').innerHTML=Array.from({length:needed},(_,i)=>`<div class="playerSlot"><select id="t1p${i}">${options}</select></div>`).join('');$('team2Slots').innerHTML=Array.from({length:needed},(_,i)=>`<div class="playerSlot"><select id="t2p${i}">${options}</select></div>`).join('');const total=needed*2;for(let i=0;i<needed;i++){const a=$('t1p'+i),b=$('t2p'+i);if(a&&members.length)a.selectedIndex=Math.min(i,members.length-1);if(b&&members.length)b.selectedIndex=Math.min(i+needed,members.length-1)}}
-function toggleMatchForm(on){updateMatchCourtChip();if(!currentLeague)return toast('Create or join a league first.');const needed=matchMode==='1s'?2:matchMode==='2s'?4:6;if(members.length<needed)return toast(`${matchMode} needs at least ${needed} league players.`);$('matchForm').classList.toggle('hidden',!on);if(on)renderTeamSlots()}
-async function recordMatch(){const needed=matchMode==='1s'?1:matchMode==='2s'?2:3;const t1=Array.from({length:needed},(_,i)=>$('t1p'+i).value),t2=Array.from({length:needed},(_,i)=>$('t2p'+i).value),all=[...t1,...t2],s1=+$('score1').value,s2=+$('score2').value;if(new Set(all).size!==all.length)return toast('Each player can only be in the match once.');if(s1===s2||s1<0||s2<0)return toast('The match needs a winner.');const {data,error}=await sb.rpc('record_team_match',{p_league_id:currentLeague.id,p_mode:matchMode,p_team1:t1,p_team2:t2,p_score1:s1,p_score2:s2});if(error)return toast(error.message);toggleMatchForm(false);toast(`Match saved • ${data?.[0]?.elo_change||''} ELO`);await loadCurrentLeague()}
+function renderDashboard(){const top=members[0];$('stats').innerHTML=`<div class="stat"><small>Players</small><b>${members.length}</b></div><div class="stat"><small>Matches</small><b>${matches.length}</b></div><div class="stat"><small>Leader</small><b>${top?escapeHtml(top.display_name):'—'}</b></div>`;$('leader').innerHTML=members.length?members.map((p,i)=>`<div class="row clickable" onclick="showPlayerProfile('${p.user_id}')"><div style="width:22px;color:#7e869a;font-weight:900">${i+1}</div><div class="avatar">${initials(p.display_name)}</div><div class="grow"><div class="name">${escapeHtml(p.display_name)}</div><div class="sub">${p.wins}-${p.losses} • ${pct(p.wins,p.losses)}% • PD ${signed(p.points_for-p.points_against)} • 🔥 ${p.streak}</div></div><div class="right"><div class="rating">${p.elo}</div>${badge(p.elo)}<div class="sub">View profile ›</div></div></div>`).join(''):'<div class="empty">No players yet.</div>'}
+
+function setVerifiedMode(mode){verifiedMode=mode;['1s','2s','3s'].forEach(m=>$('vMode'+m).classList.toggle('on',m===mode))}
+function openCreateVerified(){if(!currentLeague)return toast('Create or join a league first.');closeVerifiedForms();$('verifiedCreate').classList.remove('hidden')}
+function openJoinVerified(){if(!currentLeague)return toast('Create or join a league first.');closeVerifiedForms();$('verifiedJoin').classList.remove('hidden')}
+function closeVerifiedForms(){$('verifiedCreate').classList.add('hidden');$('verifiedJoin').classList.add('hidden')}
+async function heartbeatPresence(){
+  if(!session||!currentLeague)return;
+  const court=selectedCourt?.name||null;
+  await sb.rpc('heartbeat_presence',{p_league_id:currentLeague.id,p_court_name:court});
+  if(!presenceTimer)presenceTimer=setInterval(()=>{if(currentLeague&&session)sb.rpc('heartbeat_presence',{p_league_id:currentLeague.id,p_court_name:selectedCourt?.name||null})},60000);
+}
+async function loadOnlinePlayers(){
+  if(!currentLeague){onlinePlayers=[];renderOnlinePlayers();return}
+  const {data,error}=await sb.rpc('get_online_players',{p_league_id:currentLeague.id});
+  if(error)return;
+  onlinePlayers=data||[];renderOnlinePlayers();
+}
+function renderOnlinePlayers(){
+  const el=$('onlinePlayers'),count=$('onlineCount');if(!el||!count)return;
+  count.textContent=`${onlinePlayers.length} ONLINE`;
+  el.innerHTML=onlinePlayers.length?onlinePlayers.map(p=>`<div class="row"><div class="onlineDot"></div><div class="avatar">${initials(p.display_name)}</div><div class="grow"><div class="name">${escapeHtml(p.display_name)}</div><div class="sub">${p.elo} ELO${p.court_name?` • Near ${escapeHtml(p.court_name)}`:''}</div></div><span class="pill">${p.seconds_ago<60?'NOW':Math.ceil(p.seconds_ago/60)+'m'}</span></div>`).join('')+'<div class="privacyNote" style="padding:0 13px 12px">Only online status and the court someone chose are shown — never their exact live location.</div>':'<div class="empty">Nobody else has checked in recently.</div>';
+}
+async function createVerifiedMatch(){
+  if(!currentLeague)return;
+  const {data,error}=await sb.rpc('create_match_session',{p_league_id:currentLeague.id,p_match_type:verifiedMode,p_court_name:selectedCourt?.name||null});
+  if(error)return toast(error.message);
+  activeMatchCode=data?.[0]?.match_code;closeVerifiedForms();await refreshVerifiedMatch();toast(`Match ${activeMatchCode} created`);
+}
+async function joinVerifiedMatch(){
+  const code=$('verifiedJoinCode').value.trim().toUpperCase(),team=+$('verifiedJoinTeam').value;
+  if(code.length!==6)return toast('Enter the 6-character match code.');
+  const {data,error}=await sb.rpc('join_match_session',{p_code:code,p_team_no:team});
+  if(error)return toast(error.message);
+  activeMatchCode=code;closeVerifiedForms();await refreshVerifiedMatch();toast('Joined match');
+}
+async function openVerifiedByCode(code){activeMatchCode=code;await refreshVerifiedMatch();showPage('matches')}
+async function refreshVerifiedMatch(){
+  if(!activeMatchCode){activeMatch=null;renderVerifiedLobby();return}
+  const {data,error}=await sb.rpc('get_match_session',{p_code:activeMatchCode});
+  if(error){toast(error.message);return}
+  activeMatch=data?.[0]||null;renderVerifiedLobby();
+}
+function statusText(s){return ({waiting:'Waiting for players',live:'LIVE — play the match',awaiting_confirmation:'Awaiting opponent confirmation',official:'Official ✓',disputed:'Disputed ⚠',cancelled:'Cancelled'})[s]||s}
+function renderVerifiedLobby(){
+  const el=$('verifiedLobby');if(!el)return;
+  if(!activeMatch){el.classList.add('hidden');return}
+  el.classList.remove('hidden');
+  const ps=Array.isArray(activeMatch.players)?activeMatch.players:JSON.parse(activeMatch.players||'[]');
+  const t1=ps.filter(p=>p.team_no===1),t2=ps.filter(p=>p.team_no===2);
+  const roster=a=>a.length?a.map(p=>`<div class="rosterPerson"><div class="miniAvatar">${initials(p.display_name)}</div><div class="grow">${escapeHtml(p.display_name)}</div><span class="sub">${p.elo} ELO</span></div>`).join(''):'<div class="sub" style="padding:8px 0">Waiting for player…</div>';
+  const my=ps.find(p=>p.user_id===session?.user?.id);
+  let actions='';
+  if(activeMatch.status==='waiting'){
+    actions=`<div class="lobbyActions"><button class="btn" onclick="copyMatchCode()">Copy Code</button><button class="btn" onclick="refreshVerifiedMatch()">Refresh</button></div>`;
+  }else if(activeMatch.status==='live'){
+    actions=`<div class="formrow"><div class="field"><label>Team 1 Score</label><input id="verifiedScore1" type="number" min="0" value="11"></div><div class="field"><label>Team 2 Score</label><input id="verifiedScore2" type="number" min="0" value="7"></div></div><button class="btn primary full" style="margin-top:10px" onclick="submitVerifiedScore()">Submit Final Score</button><div class="privacyNote">Submitting does not change ELO yet. Someone on the other team must confirm it.</div>`;
+  }else if(activeMatch.status==='awaiting_confirmation'){
+    actions=`<div class="verifyNotice">Submitted score: <b>${activeMatch.team1_score}–${activeMatch.team2_score}</b>. A player from the opposite team must approve it.</div><div class="lobbyActions"><button class="btn primary" onclick="confirmVerifiedScore(true)">✓ Confirm</button><button class="btn dangerBtn" onclick="confirmVerifiedScore(false)">⚠ Dispute</button></div>`;
+  }else if(activeMatch.status==='official'){
+    actions=`<div class="verifyNotice">✅ This result is official and the league ELO/stats were updated.</div><button class="btn full" style="margin-top:10px" onclick="closeActiveMatch()">Close Match</button>`;
+  }else if(activeMatch.status==='disputed'){
+    actions=`<div class="verifyNotice">⚠ This score was disputed. No ELO was awarded.</div><button class="btn full" style="margin-top:10px" onclick="closeActiveMatch()">Close</button>`;
+  }
+  el.innerHTML=`<div class="cardHead" style="padding:0 0 10px;border-bottom:0"><b>Ranked Match Lobby</b><span class="pill">${activeMatch.match_type}</span></div><div class="codeBig">${activeMatch.match_code}</div><div class="statusLine"><span class="statusDot ${activeMatch.status==='live'?'live':activeMatch.status==='official'?'official':''}"></span><b>${statusText(activeMatch.status)}</b></div>${activeMatch.court_name?`<div class="sub">📍 ${escapeHtml(activeMatch.court_name)}</div>`:''}<div class="teamGrid"><div class="teamRoster"><b>TEAM 1</b>${roster(t1)}</div><div class="teamRoster"><b>TEAM 2</b>${roster(t2)}</div></div>${actions}`;
+}
+function copyMatchCode(){navigator.clipboard?.writeText(activeMatchCode);toast(`Copied ${activeMatchCode}`)}
+async function submitVerifiedScore(){
+  const s1=+$('verifiedScore1').value,s2=+$('verifiedScore2').value;if(s1===s2||s1<0||s2<0)return toast('The match needs a winner.');
+  const {error}=await sb.rpc('submit_match_score',{p_code:activeMatchCode,p_score1:s1,p_score2:s2});if(error)return toast(error.message);
+  await refreshVerifiedMatch();toast('Score submitted — waiting for confirmation');
+}
+async function confirmVerifiedScore(ok){
+  const {data,error}=await sb.rpc('confirm_match_score',{p_code:activeMatchCode,p_confirm:ok});if(error)return toast(error.message);
+  await refreshVerifiedMatch();await loadCurrentLeague();toast(data==='official'?'Match confirmed — ELO updated':'Match disputed — no ELO change');
+}
+function closeActiveMatch(){activeMatchCode=null;activeMatch=null;renderVerifiedLobby()}
+
 function renderMatches(){if(!currentLeague){$('matchList').innerHTML='<div class="empty">Choose a league first.</div>';return}$('matchList').innerHTML=matches.length?matches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.player1_score>m.player2_score?'win':'loss'}">${m.player1_score}</span> — <span class="${m.player2_score>m.player1_score?'win':'loss'}">${m.player2_score}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">±${m.elo_change} ELO • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No matches yet.</div>'}
 
 async function showPlayerProfile(userId){
@@ -135,8 +252,8 @@ async function loadCourtsFromOSM(){const {lat,lng}=userCoords;const radius=13000
 function renderCourts(){clearCourtMarkers();if(userCoords){const me=L.circleMarker([userCoords.lat,userCoords.lng],{radius:8,weight:3,fillOpacity:1}).addTo(courtsMap).bindPopup('You are here');courtMarkers.push(me)}nearbyCourts.forEach((c,i)=>{const m=L.marker([c.lat,c.lng]).addTo(courtsMap).bindPopup(`<b>${escapeHtml(c.name)}</b><br>${c.type} • ${c.distance.toFixed(1)} km away<br><button onclick="selectCourtByIndex(${i})" style="margin-top:7px;padding:7px;border-radius:8px">Start Match Here</button>`);courtMarkers.push(m)});$('courtCount').textContent=`${nearbyCourts.length} FOUND`;$('courtList').innerHTML=nearbyCourts.length?nearbyCourts.map((c,i)=>`<div class="row clickable" onclick="focusCourt(${i})"><div class="avatar">🎾</div><div class="grow"><div class="name">${escapeHtml(c.name)}</div><div class="courtMeta"><span class="courtTag">${c.type}</span>${c.tags.lit==='yes'?'<span class="courtTag">💡 Lit</span>':''}${c.tags.access?`<span class="courtTag">${escapeHtml(c.tags.access)}</span>`:''}</div><div class="courtDistance">${c.distance.toFixed(1)} km away</div><div class="courtActions"><button class="btn" onclick="event.stopPropagation();openDirections(${i})">Directions</button><button class="btn primary" onclick="event.stopPropagation();selectCourtByIndex(${i})">Start Match</button></div></div></div>`).join(''):'<div class="empty">No mapped courts found nearby.</div>'}
 function focusCourt(i){const c=nearbyCourts[i];if(!c)return;courtsMap.setView([c.lat,c.lng],16);const marker=courtMarkers[i+(userCoords?1:0)];marker?.openPopup()}
 function openDirections(i){const c=nearbyCourts[i];if(!c)return;window.open(`https://maps.apple.com/?daddr=${c.lat},${c.lng}&q=${encodeURIComponent(c.name)}`,'_blank')}
-function selectCourtByIndex(i){const c=nearbyCourts[i];if(!c)return;selectedCourt=c;updateMatchCourtChip();toast(`${c.name} selected`);showPage('matches');setTimeout(()=>toggleMatchForm(true),80)}
-function updateMatchCourtChip(){const el=$('matchCourtChip');if(!el)return;if(!selectedCourt){el.innerHTML='';return}const closeEnough=userCoords?kmBetween(userCoords.lat,userCoords.lng,selectedCourt.lat,selectedCourt.lng)<=0.4:false;el.innerHTML=`<div class="selectedCourt"><b>📍 ${escapeHtml(selectedCourt.name)}</b><span class="${closeEnough?'verifiedLoc':'sub'}">${closeEnough?'✓ Location checked — you are near this court':'Selected court • GPS verification available when nearby'}</span><div class="sub">Court selection is not yet stored in match history.</div></div>`}
+function selectCourtByIndex(i){const c=nearbyCourts[i];if(!c)return;selectedCourt=c;updateMatchCourtChip();heartbeatPresence();toast(`${c.name} selected`);showPage('matches');setTimeout(()=>toggleMatchForm(true),80)}
+function updateMatchCourtChip(){const el=$('matchCourtChip');if(!el)return;if(!selectedCourt){el.innerHTML='';return}const closeEnough=userCoords?kmBetween(userCoords.lat,userCoords.lng,selectedCourt.lat,selectedCourt.lng)<=0.4:false;el.innerHTML=`<div class="selectedCourt"><b>📍 ${escapeHtml(selectedCourt.name)}</b><span class="${closeEnough?'verifiedLoc':'sub'}">${closeEnough?'✓ Location checked — you are near this court':'Selected court • GPS verification available when nearby'}</span><div class="sub">Court will be attached to the verified match lobby.</div></div>`}
 
 async function saveDisplayName(){const name=$('accountName').value.trim();if(!name)return;const {error}=await sb.from('profiles').update({display_name:name}).eq('id',session.user.id);if(error)return toast(error.message);profile.display_name=name;$('welcome').textContent=`Hey ${name}`;toast('Name saved');await loadCurrentLeague()}
 function renderRankList(){$('rankList').innerHTML=tiers.map(t=>`<div class="row"><div class="avatar ${t[2]}">◆</div><div class="grow"><div class="name">${t[0]}</div><div class="sub">${t[1]}+ ELO</div></div></div>`).join('')}
