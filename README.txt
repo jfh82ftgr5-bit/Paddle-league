@@ -1,23 +1,15 @@
-Paddle League — Profiles + Activity Feed Update
+Paddle League — Social Feed Update
 
 New:
-- Strava-style Home activity feed for verified league matches
-- Tournament champion posts in the Home feed
-- Upgraded player profiles
-- ELO history graph
-- Current and reconstructed peak ELO
-- Highest rank reached
-- Current streak and point differential
-- Match-style breakdown for 1s / 2s / 3s
-- Tournament win count and trophy cabinet
-- Recent verified match history
-- Court distances display in miles
+- League members can create text posts from the Home tab
+- Posts appear in the same feed as verified matches and tournament results
+- Reactions: Like, Fire, and Clap
+- Comments on posts
+- Delete your own posts
+- 500-character post limit and 300-character comment limit
+- Feed remains scoped to members of the current league
 
-Keeps:
-- Courts V2 local directory
-- Rank System V2 badges and progress
-- Verified match codes and opponent confirmation
-- Online league presence
-- Tournaments Beta
+Keeps Profiles + Activity Feed, Courts V2, Rank System V2, verified matches, online presence, and Tournaments Beta.
 
+The Supabase social-feed tables and security rules have already been added.
 Upload the same five files to the GitHub repo root and commit to main.
