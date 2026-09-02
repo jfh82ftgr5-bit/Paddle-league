@@ -57,6 +57,9 @@
 .socialActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.reactBtn{border:1px solid #2b3244;background:#151a27;color:#c9d0de;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800}.reactBtn.on{background:#28203c;border-color:#7654b8;color:#e9ddff}
 .commentBox{margin-top:10px;border-top:1px solid #22283a;padding-top:9px}.commentRow{display:flex;gap:8px;margin-top:8px}.commentAvatar{width:28px;height:28px;border-radius:9px;background:#202638;display:grid;place-items:center;font-size:9px;font-weight:900}.commentText{background:#0c1018;border-radius:12px;padding:8px 10px;flex:1;font-size:10px;line-height:1.4}.commentText b{display:block;margin-bottom:2px}.commentInput{display:flex;gap:7px;margin-top:9px}.commentInput input{flex:1;background:#090d15;border:1px solid #2a3042;border-radius:12px;color:#fff;padding:9px 10px}.commentInput button{white-space:nowrap}.postBody{font-size:14px;line-height:1.48;margin-top:10px;white-space:pre-wrap}.postMenu{font-size:9px;color:#8e95a8;background:none;border:0;padding:4px 0}.socialStat{font-size:9px;color:#8e95a8}.autoBadge{font-size:8px;font-weight:900;padding:4px 7px;border-radius:999px;background:#172033;color:#9bc1ff}
 
+
+.leagueSwitcher{display:flex;flex-direction:column;gap:9px}.leagueCard{border:1px solid #293044;border-radius:16px;padding:13px;background:#10141f}.leagueCard.active{border-color:#7c5cff;box-shadow:0 0 0 1px #7c5cff55}.leagueCardTop{display:flex;align-items:center;gap:10px}.activeLeagueBadge{font-size:8px;font-weight:900;padding:4px 7px;border-radius:999px;background:#2b2050;color:#d7c8ff}.leagueForms{display:grid;gap:12px;margin-top:14px}.followStats{display:flex;gap:14px;margin-top:8px;font-size:10px;color:#9aa3b7}.followStats b{color:#fff;font-size:13px}.followBtn{margin-top:12px;width:100%}.followingRow{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #22283a}.followingRow:last-child{border-bottom:0}.followingBadge{font-size:8px;padding:4px 7px;border-radius:999px;background:#1d2b22;color:#78e08f;font-weight:900}
+
 </style>
 </head>
 <body>
@@ -92,7 +95,12 @@
   <div class="card" style="margin-top:14px"><div class="cardHead"><b>🏆 Leaderboard</b><span class="pill">LIVE</span></div><div id="leader"></div></div>
 </div>
 </section>
-<section id="leagues" class="page"><div class="hero"><h1>Your Leagues</h1><p class="muted">Tap a league to switch to it.</p></div><div class="card" id="leagueList"></div></section>
+<section id="leagues" class="page">
+  <div class="hero"><h1>Your Leagues</h1><p class="muted">You can belong to multiple leagues at the same time. Tap one to make it active.</p></div>
+  <div class="card"><div class="cardHead"><b>🏆 League memberships</b><span id="leagueCount" class="pill">0 LEAGUES</span></div><div id="leagueList" class="leagueSwitcher"></div></div>
+  <div class="card" style="padding:16px"><h2 style="margin:0 0 8px">Join another league</h2><div class="field"><label>Join code</label><input id="joinAnotherCode" class="code" maxlength="6" placeholder="ABC123"></div><button class="btn primary full" style="margin-top:10px" onclick="joinAnotherLeague()">Join League</button></div>
+  <div class="card" style="padding:16px"><h2 style="margin:0 0 8px">Create another league</h2><div class="field"><label>League name</label><input id="newAnotherLeagueName" maxlength="40" placeholder="Friday Night Paddle"></div><button class="btn full" style="margin-top:10px" onclick="createAnotherLeague()">Create League</button></div>
+</section>
 <section id="matches" class="page">
 <div class="hero">
   <h1>Play</h1>
@@ -155,7 +163,7 @@
   <div id="tournamentList"></div>
 </section>
 <section id="profilePage" class="page"><button class="btn backBtn" onclick="showPage('home')">← Back to League</button><div id="playerProfileContent"></div></section>
-<section id="account" class="page"><div class="hero"><h1>Account</h1><p class="muted" id="accountEmail"></p></div><div class="card" style="padding:16px"><div class="field"><label>Display name</label><input id="accountName" maxlength="24"></div><button class="btn primary full" style="margin-top:10px" onclick="saveDisplayName()">Save Name</button></div><div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div></section>
+<section id="account" class="page"><div class="hero"><h1>Account</h1><p class="muted" id="accountEmail"></p></div><div class="card" style="padding:16px"><div class="field"><label>Display name</label><input id="accountName" maxlength="24"></div><button class="btn primary full" style="margin-top:10px" onclick="saveDisplayName()">Save Name</button></div><div class="card"><div class="cardHead"><b>👥 Following</b><span id="followingCount" class="pill">0</span></div><div id="followingList"><div class="empty">You aren’t following anyone yet.</div></div></div><div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div></section>
 </main>
 <nav class="bottom"><button class="on" data-page="home"><span>🏠</span>Home</button><button data-page="leagues"><span>🏆</span>Leagues</button><button data-page="tournaments"><span>🥇</span>Tourneys</button><button data-page="courts"><span>📍</span>Courts</button><button data-page="matches"><span>🎾</span>Matches</button><button data-page="account"><span>👤</span>Account</button></nav>
 </div>
@@ -182,9 +190,39 @@ function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class=
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
 async function boot(s){session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadLeagues();renderRankList()}
-async function loadLeagues(){const {data,error}=await sb.rpc('get_my_leagues');if(error){toast(error.message);return}myLeagues=data||[];if(currentLeague){currentLeague=myLeagues.find(x=>x.id===currentLeague.id)||myLeagues[0]||null}else currentLeague=myLeagues[0]||null;renderLeagues();await loadCurrentLeague()}
-function renderLeagues(){const el=$('leagueList');el.innerHTML=myLeagues.length?myLeagues.map(l=>`<div class="row" onclick="selectLeague('${l.id}')"><div class="avatar">🏆</div><div class="grow"><div class="name">${escapeHtml(l.name)}</div><div class="sub">${escapeHtml(l.season_name)} • Join code <span class="code">${l.join_code}</span></div></div><div>${currentLeague?.id===l.id?'✓':'›'}</div></div>`).join(''):'<div class="empty">No leagues yet.</div>'}
-async function selectLeague(id){currentLeague=myLeagues.find(x=>x.id===id)||null;renderLeagues();await loadCurrentLeague();showPage('home')}
+async function loadLeagues(){
+  const {data,error}=await sb.rpc('get_my_leagues');if(error){toast(error.message);return}
+  myLeagues=data||[];
+  const saved=localStorage.getItem('paddle_active_league');
+  if(currentLeague)currentLeague=myLeagues.find(x=>x.id===currentLeague.id)||null;
+  if(!currentLeague&&saved)currentLeague=myLeagues.find(x=>x.id===saved)||null;
+  if(!currentLeague)currentLeague=myLeagues[0]||null;
+  renderLeagues();await loadCurrentLeague()
+}
+function renderLeagues(){
+  const el=$('leagueList');if(!el)return;
+  if($('leagueCount'))$('leagueCount').textContent=`${myLeagues.length} LEAGUE${myLeagues.length===1?'':'S'}`;
+  el.innerHTML=myLeagues.length?myLeagues.map(l=>`<div class="leagueCard ${currentLeague?.id===l.id?'active':''}" onclick="selectLeague('${l.id}')"><div class="leagueCardTop"><div class="avatar">🏆</div><div class="grow"><div class="name">${escapeHtml(l.name)}</div><div class="sub">${escapeHtml(l.season_name)} • Join code <span class="code">${l.join_code}</span></div></div>${currentLeague?.id===l.id?'<span class="activeLeagueBadge">ACTIVE</span>':'<span>›</span>'}</div></div>`).join(''):'<div class="empty">No leagues yet.</div>'
+}
+async function selectLeague(id){
+  currentLeague=myLeagues.find(x=>x.id===id)||null;
+  if(currentLeague)localStorage.setItem('paddle_active_league',currentLeague.id);
+  renderLeagues();await loadCurrentLeague();showPage('home')
+}
+async function createAnotherLeague(){
+  const name=$('newAnotherLeagueName').value.trim();if(!name)return toast('Give the league a name.');
+  const {data,error}=await sb.rpc('create_league',{p_name:name,p_season_name:'Season 1'});if(error)return toast(error.message);
+  $('newAnotherLeagueName').value='';await loadLeagues();
+  const createdId=data?.[0]?.league_id||data?.league_id;if(createdId){currentLeague=myLeagues.find(x=>x.id===createdId)||currentLeague;localStorage.setItem('paddle_active_league',createdId)}
+  renderLeagues();await loadCurrentLeague();toast('League created — your other memberships are still here.')
+}
+async function joinAnotherLeague(){
+  const code=$('joinAnotherCode').value.trim().toUpperCase();if(code.length!==6)return toast('Enter the 6-character league code.');
+  const {data,error}=await sb.rpc('join_league_by_code',{p_code:code});if(error)return toast(error.message);
+  $('joinAnotherCode').value='';await loadLeagues();
+  const joinedId=data?.[0]?.league_id||data?.league_id;if(joinedId){currentLeague=myLeagues.find(x=>x.id===joinedId)||currentLeague;localStorage.setItem('paddle_active_league',joinedId)}
+  renderLeagues();await loadCurrentLeague();toast('Joined league — you can switch anytime.')
+}
 async function createLeague(){const name=$('newLeagueName').value.trim();if(!name)return toast('Give your league a name.');const {data,error}=await sb.rpc('create_league',{p_name:name,p_season_name:'Season 1'});if(error)return toast(error.message);$('newLeagueName').value='';currentLeague=data?.[0]||null;toast('League created!');await loadLeagues()}
 async function joinLeague(){const code=$('joinCode').value.trim().toUpperCase();if(code.length<4)return toast('Enter the league code.');const {data,error}=await sb.rpc('join_league_by_code',{p_code:code});if(error)return toast(error.message);$('joinCode').value='';currentLeague=data?.[0]||null;toast('Joined league!');await loadLeagues()}
 async function loadCurrentLeague(){if(!currentLeague){$('noLeague').classList.remove('hidden');$('leagueDashboard').classList.add('hidden');$('currentLeagueChip').innerHTML='';members=[];matches=[];socialPosts=[],playMode="ranked",casualMatches=[];renderActivityFeed();renderMatches();return}$('noLeague').classList.add('hidden');$('leagueDashboard').classList.remove('hidden');$('seasonLabel').textContent=`${currentLeague.season_name.toUpperCase()} • RANKED`;$('currentLeagueChip').innerHTML=`<div class="leagueChip"><div class="grow"><b>${escapeHtml(currentLeague.name)}</b><div class="sub">Join code <span class="code">${currentLeague.join_code}</span></div></div><button class="btn" onclick="copyCode()">Copy</button></div>`;const [mr,xr]=await Promise.all([sb.rpc('get_league_members',{p_league_id:currentLeague.id}),sb.rpc('get_league_matches',{p_league_id:currentLeague.id})]);if(mr.error)return toast(mr.error.message);members=mr.data||[];matches=xr.data||[];const cr=await sb.rpc('get_casual_matches',{p_league_id:currentLeague.id});casualMatches=cr.data||[];renderDashboard();await loadSocialPosts();renderActivityFeed();renderMatches();renderRankList();await heartbeatPresence();await loadOnlinePlayers();if(activeMatchCode)await refreshVerifiedMatch()}
@@ -380,12 +418,34 @@ function closeActiveMatch(){activeMatchCode=null;activeMatch=null;renderVerified
 
 function renderMatches(){if(!currentLeague){$('matchList').innerHTML='<div class="empty">Choose a league first.</div>';return}if(playMode==='casual'){$('matchList').innerHTML=casualMatches.length?casualMatches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.score1>m.score2?'win':'loss'}">${m.score1}</span> — <span class="${m.score2>m.score1?'win':'loss'}">${m.score2}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">🎾 Casual • No ELO${m.court_name?' • 📍 '+escapeHtml(m.court_name):''} • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No casual matches yet. Create one and play without rank pressure.</div>';return}$('matchList').innerHTML=matches.length?matches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.player1_score>m.player2_score?'win':'loss'}">${m.player1_score}</span> — <span class="${m.player2_score>m.player1_score?'win':'loss'}">${m.player2_score}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">±${m.elo_change} ELO • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No ranked matches yet.</div>'}
 
+async function getFollowInfo(userId){
+  const [followers,following,mine]=await Promise.all([
+    sb.from('player_follows').select('*',{count:'exact',head:true}).eq('following_id',userId),
+    sb.from('player_follows').select('*',{count:'exact',head:true}).eq('follower_id',userId),
+    sb.from('player_follows').select('following_id').eq('follower_id',session.user.id).eq('following_id',userId).maybeSingle()
+  ]);
+  return {followers:followers.count||0,following:following.count||0,isFollowing:!!mine.data}
+}
+async function toggleFollow(userId){
+  if(userId===session.user.id)return;
+  const {data}=await sb.from('player_follows').select('following_id').eq('follower_id',session.user.id).eq('following_id',userId).maybeSingle();
+  let error;if(data)({error}=await sb.from('player_follows').delete().eq('follower_id',session.user.id).eq('following_id',userId));else({error}=await sb.from('player_follows').insert({follower_id:session.user.id,following_id:userId}));
+  if(error)return toast(error.message);await showPlayerProfile(userId);toast(data?'Unfollowed':'Following')
+}
+async function renderFollowingList(){
+  const el=$('followingList');if(!el||!session)return;
+  const {data,error}=await sb.from('player_follows').select('following_id,profiles!player_follows_following_id_fkey(display_name)').eq('follower_id',session.user.id).order('created_at',{ascending:false});
+  if(error){el.innerHTML='<div class="empty">Could not load following.</div>';return}
+  const rows=data||[];if($('followingCount'))$('followingCount').textContent=rows.length;
+  el.innerHTML=rows.length?rows.map(r=>`<div class="followingRow"><div class="avatar">${initials(r.profiles?.display_name||'P')}</div><div class="grow"><div class="name">${escapeHtml(r.profiles?.display_name||'Player')}</div><span class="followingBadge">FOLLOWING</span></div></div>`).join(''):'<div class="empty">You aren’t following anyone yet. Open a player from a league leaderboard to follow them.</div>'
+}
 async function showPlayerProfile(userId){
   if(!currentLeague)return;
-  const [pr,hr,chr]=await Promise.all([
+  const [pr,hr,chr,followInfo]=await Promise.all([
     sb.rpc('get_player_profile',{p_league_id:currentLeague.id,p_user_id:userId}),
     sb.rpc('get_player_match_history',{p_league_id:currentLeague.id,p_user_id:userId}),
-    sb.rpc('get_player_casual_history',{p_league_id:currentLeague.id,p_user_id:userId})
+    sb.rpc('get_player_casual_history',{p_league_id:currentLeague.id,p_user_id:userId}),
+    getFollowInfo(userId)
   ]);
   if(pr.error)return toast(pr.error.message);
   if(hr.error)return toast(hr.error.message);
@@ -402,8 +462,10 @@ async function showPlayerProfile(userId){
       <div class="profileTop">
         <div class="profileAvatar">${initials(p.display_name)}</div>
         <div class="profileTitle grow"><h1>${escapeHtml(p.display_name)}</h1><div class="sub">${p.wins}-${p.losses} overall • ${p.win_pct}% win rate</div></div>
+        <div><div class="followStats"><span><b>${followInfo.followers}</b> followers</span><span><b>${followInfo.following}</b> following</span></div></div>
       </div>
       <div class="profileRankRow">${rankImg(p.elo,'lg')}<div class="grow"><b style="font-size:20px">${escapeHtml(rankFor(p.elo)[0])}</b>${progressMarkup(p.elo)}</div></div>
+      ${userId!==session.user.id?`<button class="btn ${followInfo.isFollowing?'':'primary'} followBtn" onclick="toggleFollow('${userId}')">${followInfo.isFollowing?'✓ Following':'＋ Follow'}</button>`:''}
       <div class="profileMetrics">
         <div class="profileMetric"><small>Current ELO</small><b>${p.elo}</b></div>
         <div class="profileMetric"><small>Peak ELO</small><b>${peak}</b></div>
@@ -582,7 +644,7 @@ function pickTournamentWinner(tid,ri,gi,side){let all=getTournaments(),t=all.fin
 function deleteTournament(id){if(!confirm('Delete this tournament?'))return;saveTournaments(getTournaments().filter(t=>t.id!==id));renderTournaments();renderActivityFeed()}
 function renderTournaments(){if(!currentLeague){$('tournamentList').innerHTML='<div class="card"><div class="empty">Choose a league to view tournaments.</div></div>';return}const ts=getTournaments();$('tournamentList').innerHTML=ts.length?ts.map(t=>{const rounds=t.rounds.map((r,ri)=>`<div class="round"><div class="roundTitle">${roundName(ri,t.rounds.length)}</div>${r.map((g,gi)=>`<div class="game"><div class="seed pick" onclick="pickTournamentWinner('${t.id}',${ri},${gi},'a')"><span>${g.a?`#${g.a.seed} ${escapeHtml(g.a.name)}`:'TBD'}</span><span>${g.winner?.id===g.a?.id?'✓':''}</span></div><div class="seed pick" onclick="pickTournamentWinner('${t.id}',${ri},${gi},'b')"><span>${g.b?`#${g.b.seed} ${escapeHtml(g.b.name)}`:'TBD'}</span><span>${g.winner?.id===g.b?.id?'✓':''}</span></div></div>`).join('')}</div>`).join('');return `<div class="card"><div class="cardHead"><div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.size}-player bracket • seeded by ELO</div></div><span class="pill ${t.status==='LIVE'?'beta':''}">${t.status}</span></div>${t.champion?`<div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div>`:''}<div class="bracket">${rounds}</div><div style="padding:0 14px 14px"><button class="btn danger full" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div></div>`}).join(''):'<div class="card"><div class="empty">No tournaments yet. Create your first league cup! 🏆</div></div>'}
 
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='leagues')renderLeagues();if(id==='matches')renderMatches();if(id==='tournaments')renderTournaments()}
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='leagues')renderLeagues();if(id==='matches')renderMatches();if(id==='tournaments')renderTournaments();if(id==='account')renderFollowingList()}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
