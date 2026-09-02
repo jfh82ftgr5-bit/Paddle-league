@@ -1,17 +1,26 @@
-Paddle League — Tournaments Update
+Paddle League — Courts V2
 
-NEW:
-- Tournaments tab
-- 4-player and 8-player brackets
-- Choose league players as entrants
-- Automatic ELO seeding
-- Tap a player in a matchup to advance them
-- Semifinals/finals generate automatically
-- Tournament champion display
-- Keeps Rank Center, verified matches, courts, leagues, and account features
+Adds a reliable local court directory on top of the existing map:
+- Clovis High Tennis Courts
+- Buchanan High Tennis Courts
+- Clovis West High Tennis Courts
+- Clovis East High Tennis Courts
+- Clovis North High Tennis Courts
+- Alta Sierra Intermediate Tennis Courts
+- Clark Intermediate Tennis Courts
+- Sunnyside High Tennis Courts
+- Bullard High Tennis Courts
+- Hoover High Tennis Courts
+- McLane High Tennis Courts
+- Edison High Tennis Courts
+- Fresno City College Tennis Courts
+- East Rotary Park Tennis Courts
+- Orchid Park Tennis Courts
+- Roeding Park Tennis Center
 
-UPLOAD:
-Upload all 5 files in this folder to the root of your GitHub repository and commit the changes. Vercel should redeploy automatically.
+The app shows these named courts even if live map discovery fails.
+GPS sorts known courts by distance and can merge in additional OpenStreetMap courts.
+School-court access may depend on school practices, events, and campus rules.
+Exact user location is not shared with other players.
 
-NOTE:
-Tournament brackets in this first beta are saved on the device/browser that created them. The next backend update can sync tournaments live for every league member.
+Keeps Rank System V2, verified matches, profiles, and Tournaments Beta.

@@ -22,6 +22,12 @@
 
 
 .tourneyGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tourneyCard{padding:15px;border:1px solid #292f42;border-radius:17px;background:linear-gradient(145deg,#151929,#0d1018)}.tourneyTitle{font-size:18px;font-weight:950}.bracket{display:flex;gap:12px;overflow-x:auto;padding:14px}.round{min-width:210px;display:flex;flex-direction:column;gap:12px}.roundTitle{font-size:10px;letter-spacing:.12em;color:#8e95a8;font-weight:900;text-transform:uppercase}.game{border:1px solid #2b3144;background:#0b0f17;border-radius:14px;padding:9px}.seed{display:flex;justify-content:space-between;gap:8px;padding:8px;border-radius:9px;font-weight:850}.seed+.seed{border-top:1px solid #202638}.seed.pick{cursor:pointer}.seed.pick:active{background:#22283a}.championBox{text-align:center;padding:20px}.trophyBig{font-size:45px}.entrant{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #202433}.entrant:last-child{border:0}.entrant input{width:20px;height:20px}.beta{color:#c4b5fd}.tourneyStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.tourneyStats div{padding:10px;border-radius:12px;background:#0b0f17;border:1px solid #252a3b;text-align:center}.tourneyStats b{display:block;font-size:18px}.tourneyStats small{color:#858da1;font-size:9px}
+
+.featuredCourt{border-left:3px solid #7c5cff}
+.courtAddr{font-size:10px;color:#8e95a8;margin-top:3px}
+.accessNote{font-size:9px;color:#aab2c3;margin-top:4px}
+.sourceBadge{font-size:8px;font-weight:900;letter-spacing:.06em;padding:3px 6px;border-radius:999px;background:#24213a;color:#c4b5fd}
+
 </style>
 </head>
 <body>
@@ -94,12 +100,12 @@
 <section id="courts" class="page">
   <div class="hero">
     <h1>📍 Courts</h1>
-    <p class="muted">Find nearby tennis, padel, and paddle courts. Your exact live location is not shown to other players.</p>
+    <p class="muted">Find named local tennis courts first, then sort them by distance when you use GPS. Your exact live location is never shown to other players.</p>
     <div class="courtToolbar"><button class="btn primary" onclick="findNearbyCourts()">Use My Location</button><button class="btn" onclick="refreshCourts()">Refresh</button></div>
-    <div id="courtStatus" class="locationNote">Allow location access to search around you.</div>
+    <div id="courtStatus" class="locationNote">Local Clovis/Fresno courts are loaded below. Use GPS to sort them by distance and discover more.</div>
   </div>
   <div class="mapWrap"><div id="courtsMap" class="mapBox"></div></div>
-  <div class="card courtList"><div class="cardHead"><b>Nearby places to play</b><span id="courtCount" class="pill">0 FOUND</span></div><div id="courtList"><div class="empty">Tap “Use My Location” to find courts nearby.</div></div></div>
+  <div class="card courtList"><div class="cardHead"><b>Courts & schools</b><span id="courtCount" class="pill">LOCAL</span></div><div id="courtList"><div class="empty">Loading local courts…</div></div></div>
 </section>
 
 
@@ -256,19 +262,145 @@ async function showPlayerProfile(userId){
 }
 
 
-function initCourtsMap(){if(courtsMap)return;courtsMap=L.map('courtsMap',{zoomControl:true}).setView([36.7378,-119.7871],11);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(courtsMap)}
+
+const KNOWN_COURTS=[
+ {id:'known-clovis-high',name:'Clovis High Tennis Courts',address:'1055 Fowler Ave, Clovis, CA 93611',type:'Tennis',category:'School',lat:36.8176586,lng:-119.6778604,tags:{lit:'yes'},access:'School courts — availability can depend on school practices/events.'},
+ {id:'known-buchanan',name:'Buchanan High Tennis Courts',address:'1560 N Minnewawa Ave, Clovis, CA 93619',type:'Tennis',category:'School',lat:36.8557512,lng:-119.7141529,tags:{lit:'yes'},access:'Large school tennis complex; check school/event use before playing.'},
+ {id:'known-clovis-west',name:'Clovis West High Tennis Courts',address:'1070 E Teague Ave, Fresno, CA 93720',type:'Tennis',category:'School',lat:36.8611117,lng:-119.7623453,tags:{lit:'yes'},access:'School courts; organized practices or tournaments may take priority.'},
+ {id:'known-clovis-east',name:'Clovis East High Tennis Courts',address:'2940 Leonard Ave, Clovis, CA 93619',type:'Tennis',category:'School',lat:36.79868,lng:-119.64046,tags:{lit:'yes'},access:'School-campus courts; access can vary with school activities.'},
+ {id:'known-clovis-north',name:'Clovis North High Tennis Courts',address:'2770 E International Ave, Fresno, CA 93730',type:'Tennis',category:'School',lat:36.8896283,lng:-119.7329452,tags:{lit:'yes'},access:'School-campus courts; check availability around team practices and events.'},
+ {id:'known-alta-sierra',name:'Alta Sierra Intermediate Tennis Courts',address:'380 W Teague Ave, Clovis, CA 93619',type:'Tennis',category:'School',lat:36.8568508,lng:-119.7180502,tags:{lit:'yes'},access:'School-campus courts; public availability may vary.'},
+ {id:'known-clark',name:'Clark Intermediate Tennis Courts',address:'902 5th St, Clovis, CA 93612',type:'Tennis',category:'School',lat:36.8226261,lng:-119.6963830,tags:{lit:'yes'},access:'School-campus courts; public access is not guaranteed at all times.'},
+ {id:'known-sunnyside',name:'Sunnyside High Tennis Courts',address:'1019 S Peach Ave, Fresno, CA 93727',type:'Tennis',category:'School',lat:null,lng:null,tags:{lit:'yes'},access:'School-campus courts; availability may depend on school use.'},
+ {id:'known-bullard',name:'Bullard High Tennis Courts',address:'5445 N Palm Ave, Fresno, CA 93704',type:'Tennis',category:'School',lat:null,lng:null,tags:{lit:'yes'},access:'School-campus courts; check access before playing.'},
+ {id:'known-hoover',name:'Hoover High Tennis Courts',address:'5550 N 1st St, Fresno, CA 93710',type:'Tennis',category:'School',lat:null,lng:null,tags:{lit:'yes'},access:'School-campus courts; access can vary.'},
+ {id:'known-mclane',name:'McLane High Tennis Courts',address:'2727 N Cedar Ave, Fresno, CA 93703',type:'Tennis',category:'School',lat:null,lng:null,tags:{lit:'yes'},access:'School-campus courts; access can vary.'},
+ {id:'known-edison',name:'Edison High Tennis Courts',address:'540 E Cesar Chavez Blvd, Fresno, CA 93706',type:'Tennis',category:'School',lat:null,lng:null,tags:{lit:'yes'},access:'School-campus courts; access can vary.'},
+ {id:'known-fcc',name:'Fresno City College Tennis Courts',address:'1101 E University Ave, Fresno, CA 93741',type:'Tennis',category:'College',lat:null,lng:null,tags:{lit:'yes'},access:'College courts; check campus rules and scheduled use.'},
+ {id:'known-east-rotary',name:'East Rotary Park Tennis Courts',address:'6464 N Cedar Ave, Fresno, CA 93710',type:'Tennis',category:'Public Park',lat:null,lng:null,tags:{lit:'yes'},access:'Public park courts.'},
+ {id:'known-orchid',name:'Orchid Park Tennis Courts',address:'3420 W Fir Ave, Fresno, CA 93720',type:'Tennis',category:'Public Park',lat:null,lng:null,tags:{},access:'Public park courts.'},
+ {id:'known-roeding',name:'Roeding Park Tennis Center',address:'Fresno, CA 93728',type:'Tennis',category:'Public Tennis Center',lat:null,lng:null,tags:{lit:'yes'},access:'Public tennis center; hours can vary.'}
+];
+
+function initCourtsMap(){
+  if(courtsMap)return;
+  courtsMap=L.map('courtsMap',{zoomControl:true}).setView([36.8177,-119.6779],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(courtsMap);
+  loadKnownCourts();
+}
 function kmBetween(a,b,c,d){const R=6371,toRad=x=>x*Math.PI/180;const dLat=toRad(c-a),dLon=toRad(d-b);const q=Math.sin(dLat/2)**2+Math.cos(toRad(a))*Math.cos(toRad(c))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(q))}
 function courtLabel(tags){return tags.name||tags.operator||tags['addr:street']||'Court'}
 function courtType(tags){const s=(tags.sport||'').toLowerCase();if(s.includes('padel'))return 'Padel';if(s.includes('paddle'))return 'Paddle';return 'Tennis'}
 function clearCourtMarkers(){courtMarkers.forEach(m=>m.remove());courtMarkers=[]}
-async function findNearbyCourts(){initCourtsMap();if(!navigator.geolocation){$('courtStatus').textContent='Location is not supported on this device/browser.';return}$('courtStatus').textContent='Getting your location…';navigator.geolocation.getCurrentPosition(async pos=>{userCoords={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};courtsMap.setView([userCoords.lat,userCoords.lng],13);$('courtStatus').textContent='Location found. Searching within about 8 miles…';await loadCourtsFromOSM()},err=>{$('courtStatus').textContent=err.code===1?'Location permission was denied. Enable it in Safari settings and try again.':'Could not get your location. Try again.'},{enableHighAccuracy:true,timeout:12000,maximumAge:60000})}
-async function refreshCourts(){if(userCoords)await loadCourtsFromOSM();else findNearbyCourts()}
-async function loadCourtsFromOSM(){const {lat,lng}=userCoords;const radius=13000;const query=`[out:json][timeout:20];(nwr(around:${radius},${lat},${lng})[leisure=pitch][sport~"tennis|padel|paddle_tennis",i];nwr(around:${radius},${lat},${lng})[sport~"tennis|padel|paddle_tennis",i];);out center tags;`;try{const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});if(!res.ok)throw new Error('search failed');const data=await res.json();const seen=new Set();nearbyCourts=(data.elements||[]).map(e=>{const c=e.center||e;if(!c.lat||!c.lon)return null;const name=courtLabel(e.tags||{}),type=courtType(e.tags||{}),key=`${name}|${c.lat.toFixed(4)}|${c.lon.toFixed(4)}`;if(seen.has(key))return null;seen.add(key);return{id:`osm-${e.type}-${e.id}`,name,type,lat:c.lat,lng:c.lon,distance:kmBetween(lat,lng,c.lat,c.lon),tags:e.tags||{}}}).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,30);renderCourts();$('courtStatus').textContent=nearbyCourts.length?`Found ${nearbyCourts.length} nearby places. Court data comes from OpenStreetMap.`:'No mapped courts found nearby. Some local courts may not be listed yet.'}catch(e){$('courtStatus').textContent='Court search failed this time. Try Refresh in a moment.';toast('Could not load nearby courts.')}}
-function renderCourts(){clearCourtMarkers();if(userCoords){const me=L.circleMarker([userCoords.lat,userCoords.lng],{radius:8,weight:3,fillOpacity:1}).addTo(courtsMap).bindPopup('You are here');courtMarkers.push(me)}nearbyCourts.forEach((c,i)=>{const m=L.marker([c.lat,c.lng]).addTo(courtsMap).bindPopup(`<b>${escapeHtml(c.name)}</b><br>${c.type} • ${c.distance.toFixed(1)} km away<br><button onclick="selectCourtByIndex(${i})" style="margin-top:7px;padding:7px;border-radius:8px">Start Match Here</button>`);courtMarkers.push(m)});$('courtCount').textContent=`${nearbyCourts.length} FOUND`;$('courtList').innerHTML=nearbyCourts.length?nearbyCourts.map((c,i)=>`<div class="row clickable" onclick="focusCourt(${i})"><div class="avatar">🎾</div><div class="grow"><div class="name">${escapeHtml(c.name)}</div><div class="courtMeta"><span class="courtTag">${c.type}</span>${c.tags.lit==='yes'?'<span class="courtTag">💡 Lit</span>':''}${c.tags.access?`<span class="courtTag">${escapeHtml(c.tags.access)}</span>`:''}</div><div class="courtDistance">${c.distance.toFixed(1)} km away</div><div class="courtActions"><button class="btn" onclick="event.stopPropagation();openDirections(${i})">Directions</button><button class="btn primary" onclick="event.stopPropagation();selectCourtByIndex(${i})">Start Match</button></div></div></div>`).join(''):'<div class="empty">No mapped courts found nearby.</div>'}
-function focusCourt(i){const c=nearbyCourts[i];if(!c)return;courtsMap.setView([c.lat,c.lng],16);const marker=courtMarkers[i+(userCoords?1:0)];marker?.openPopup()}
-function openDirections(i){const c=nearbyCourts[i];if(!c)return;window.open(`https://maps.apple.com/?daddr=${c.lat},${c.lng}&q=${encodeURIComponent(c.name)}`,'_blank')}
-function selectCourtByIndex(i){const c=nearbyCourts[i];if(!c)return;selectedCourt=c;updateMatchCourtChip();heartbeatPresence();toast(`${c.name} selected`);showPage('matches');setTimeout(()=>toggleMatchForm(true),80)}
-function updateMatchCourtChip(){const el=$('matchCourtChip');if(!el)return;if(!selectedCourt){el.innerHTML='';return}const closeEnough=userCoords?kmBetween(userCoords.lat,userCoords.lng,selectedCourt.lat,selectedCourt.lng)<=0.4:false;el.innerHTML=`<div class="selectedCourt"><b>📍 ${escapeHtml(selectedCourt.name)}</b><span class="${closeEnough?'verifiedLoc':'sub'}">${closeEnough?'✓ Location checked — you are near this court':'Selected court • GPS verification available when nearby'}</span><div class="sub">Court will be attached to the verified match lobby.</div></div>`}
+
+function loadKnownCourts(){
+  nearbyCourts=KNOWN_COURTS.map(c=>({...c,distance:(userCoords&&c.lat!=null)?kmBetween(userCoords.lat,userCoords.lng,c.lat,c.lng):null,featured:true}));
+  if(userCoords)nearbyCourts.sort((a,b)=>(a.distance??999)-(b.distance??999));
+  renderCourts();
+  $('courtStatus').textContent=userCoords?'Local courts sorted by distance. Refresh can also search for additional mapped courts.':'Loaded local Clovis/Fresno courts. Tap “Use My Location” to sort them by distance.';
+}
+
+async function findNearbyCourts(){
+  initCourtsMap();
+  if(!navigator.geolocation){$('courtStatus').textContent='Location is not supported on this device/browser.';return}
+  $('courtStatus').textContent='Getting your location…';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    userCoords={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};
+    courtsMap.setView([userCoords.lat,userCoords.lng],12);
+    loadKnownCourts();
+    await loadCourtsFromOSM(true);
+  },err=>{
+    $('courtStatus').textContent=err.code===1?'Location permission was denied. Local courts are still available below.':'Could not get your location. Local courts are still available below.';
+    loadKnownCourts();
+  },{enableHighAccuracy:true,timeout:12000,maximumAge:60000})
+}
+async function refreshCourts(){
+  if(userCoords)await loadCourtsFromOSM(true);
+  else loadKnownCourts();
+}
+async function loadCourtsFromOSM(mergeWithKnown=true){
+  if(!userCoords){loadKnownCourts();return}
+  const {lat,lng}=userCoords;const radius=18000;
+  const query=`[out:json][timeout:20];(nwr(around:${radius},${lat},${lng})[leisure=pitch][sport~"tennis|padel|paddle_tennis",i];nwr(around:${radius},${lat},${lng})[sport~"tennis|padel|paddle_tennis",i];);out center tags;`;
+  let discovered=[];
+  try{
+    const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});
+    if(!res.ok)throw new Error('search failed');
+    const data=await res.json(),seen=new Set();
+    discovered=(data.elements||[]).map(e=>{
+      const c=e.center||e;if(!c.lat||!c.lon)return null;
+      const name=courtLabel(e.tags||{}),type=courtType(e.tags||{}),key=`${name}|${c.lat.toFixed(4)}|${c.lon.toFixed(4)}`;
+      if(seen.has(key))return null;seen.add(key);
+      return{id:`osm-${e.type}-${e.id}`,name,type,category:'Mapped Court',lat:c.lat,lng:c.lon,distance:kmBetween(lat,lng,c.lat,c.lon),tags:e.tags||{},address:'',access:'Mapped from OpenStreetMap.'}
+    }).filter(Boolean);
+  }catch(e){
+    $('courtStatus').textContent='Live court search is unavailable right now, but the saved local court list is still working.';
+  }
+  const base=KNOWN_COURTS.map(c=>({...c,distance:c.lat!=null?kmBetween(lat,lng,c.lat,c.lng):null,featured:true}));
+  const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const knownNames=new Set(base.map(c=>norm(c.name)));
+  const extras=discovered.filter(c=>![...knownNames].some(k=>k&&norm(c.name).includes(k.slice(0,10))));
+  nearbyCourts=[...base,...extras].sort((a,b)=>(a.distance??999)-(b.distance??999)).slice(0,40);
+  renderCourts();
+  if(discovered.length)$('courtStatus').textContent=`Showing saved local courts plus ${extras.length} additional mapped court${extras.length===1?'':'s'}, sorted by distance.`;
+}
+function renderCourts(){
+  initCourtsMap();
+  clearCourtMarkers();
+  if(userCoords){
+    const me=L.circleMarker([userCoords.lat,userCoords.lng],{radius:8,weight:3,fillOpacity:1}).addTo(courtsMap).bindPopup('Your approximate location');
+    courtMarkers.push(me)
+  }
+  nearbyCourts.forEach((c,i)=>{
+    if(c.lat==null||c.lng==null)return;
+    const m=L.marker([c.lat,c.lng]).addTo(courtsMap).bindPopup(`<b>${escapeHtml(c.name)}</b><br>${escapeHtml(c.category||c.type)}${c.distance!=null?` • ${c.distance.toFixed(1)} km away`:''}<br><button onclick="selectCourtByIndex(${i})" style="margin-top:7px;padding:7px;border-radius:8px">Start Match Here</button>`);
+    courtMarkers.push(m)
+  });
+  $('courtCount').textContent=`${nearbyCourts.length} FOUND`;
+  $('courtList').innerHTML=nearbyCourts.length?nearbyCourts.map((c,i)=>`
+    <div class="row clickable ${c.featured?'featuredCourt':''}" onclick="focusCourt(${i})">
+      <div class="avatar">🎾</div>
+      <div class="grow">
+        <div class="name">${escapeHtml(c.name)} ${c.featured?'<span class="sourceBadge">LOCAL</span>':''}</div>
+        <div class="courtMeta">
+          <span class="courtTag">${escapeHtml(c.category||c.type)}</span>
+          ${c.tags?.lit==='yes'?'<span class="courtTag">💡 Lit</span>':''}
+          ${c.tags?.access?`<span class="courtTag">${escapeHtml(c.tags.access)}</span>`:''}
+        </div>
+        ${c.address?`<div class="courtAddr">${escapeHtml(c.address)}</div>`:''}
+        <div class="courtDistance">${c.distance!=null?`${c.distance.toFixed(1)} km away`:'Tap Directions to open this court on the map'}</div>
+        ${c.access?`<div class="accessNote">${escapeHtml(c.access)}</div>`:''}
+        <div class="courtActions">
+          <button class="btn" onclick="event.stopPropagation();openDirections(${i})">Directions</button>
+          <button class="btn primary" onclick="event.stopPropagation();selectCourtByIndex(${i})">Start Match</button>
+        </div>
+      </div>
+    </div>`).join(''):'<div class="empty">No courts found.</div>'
+}
+function focusCourt(i){
+  const c=nearbyCourts[i];if(!c)return;
+  if(c.lat!=null&&c.lng!=null){
+    courtsMap.setView([c.lat,c.lng],16);
+    const marker=courtMarkers.find(m=>{try{const p=m.getLatLng();return Math.abs(p.lat-c.lat)<.0001&&Math.abs(p.lng-c.lng)<.0001}catch{return false}});
+    marker?.openPopup()
+  }else openDirections(i)
+}
+function openDirections(i){
+  const c=nearbyCourts[i];if(!c)return;
+  const destination=(c.lat!=null&&c.lng!=null)?`${c.lat},${c.lng}`:c.address||c.name;
+  window.open(`https://maps.apple.com/?daddr=${encodeURIComponent(destination)}&q=${encodeURIComponent(c.name)}`,'_blank')
+}
+function selectCourtByIndex(i){
+  const c=nearbyCourts[i];if(!c)return;
+  selectedCourt=c;updateMatchCourtChip();heartbeatPresence();toast(`${c.name} selected`);showPage('matches');
+  setTimeout(()=>{if(typeof openCreateVerified==='function')openCreateVerified()},80)
+}
+function updateMatchCourtChip(){
+  const el=$('matchCourtChip');if(!el)return;
+  if(!selectedCourt){el.innerHTML='';return}
+  const closeEnough=(userCoords&&selectedCourt.lat!=null)?kmBetween(userCoords.lat,userCoords.lng,selectedCourt.lat,selectedCourt.lng)<=0.4:false;
+  el.innerHTML=`<div class="selectedCourt"><b>📍 ${escapeHtml(selectedCourt.name)}</b><span class="${closeEnough?'verifiedLoc':'sub'}">${closeEnough?'✓ Location checked — you are near this court':'Selected court • GPS verification available when coordinates are known'}</span><div class="sub">Court will be attached to the verified match lobby.</div></div>`
+}
 
 async function saveDisplayName(){const name=$('accountName').value.trim();if(!name)return;const {error}=await sb.from('profiles').update({display_name:name}).eq('id',session.user.id);if(error)return toast(error.message);profile.display_name=name;$('welcome').textContent=`Hey ${name}`;toast('Name saved');await loadCurrentLeague()}
 function renderRankList(){const myElo=members.find(x=>x.user_id===session?.user?.id)?.elo??1000;const d=rankProgressData(myElo);$('rankList').innerHTML=`<div class="rankCard"><div class="rankHero">${rankImg(myElo,'lg')}<div class="grow"><h2>${d.cur[0]}</h2><div class="sub">YOUR CURRENT RANK</div>${progressMarkup(myElo)}</div></div></div><div class="rankGallery">${tiers.map((t,i)=>`<div class="rankTile ${i===d.i?'current':''}"><img src="${rankImages[i]}" alt="${t[0]} badge"><b class="${t[2]}">${t[0]}</b><small>${t[1]}+ ELO</small></div>`).join('')}</div>`}
