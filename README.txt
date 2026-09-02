@@ -1,10 +1,17 @@
-Paddle League — Rank System V2
+Paddle League — Tournaments Update
 
-NEW
-- Uses the 8 custom Paddle League rank badge designs: Rookie, Rally, Challenger, Elite, Master, Champion, Legend, Unreal.
-- Rank badges now appear on the live leaderboard and player profiles.
-- Player profiles show a live ELO progress bar and exactly how much ELO is needed for the next rank.
-- Account now has a Rank Center with all 8 badges and thresholds.
-- Existing Courts, online status, verified match codes, opponent confirmation, official match history, leagues, and Supabase data are preserved.
+NEW:
+- Tournaments tab
+- 4-player and 8-player brackets
+- Choose league players as entrants
+- Automatic ELO seeding
+- Tap a player in a matchup to advance them
+- Semifinals/finals generate automatically
+- Tournament champion display
+- Keeps Rank Center, verified matches, courts, leagues, and account features
 
-Upload all 5 files to the root of the GitHub repository, replacing the existing files.
+UPLOAD:
+Upload all 5 files in this folder to the root of your GitHub repository and commit the changes. Vercel should redeploy automatically.
+
+NOTE:
+Tournament brackets in this first beta are saved on the device/browser that created them. The next backend update can sync tournaments live for every league member.
