@@ -1,16 +1,10 @@
-Paddle League — Verified Matches Update
+Paddle League — Rank System V2
 
-New:
-- Online status inside each league
-- Optional “Near [selected court]” presence without exposing exact location
-- Create ranked match with 6-character match code
-- Other players must join before match goes LIVE
-- Supports 1s, 2s, and 3s
-- Score submission requires confirmation by the opposing team
-- ELO changes only after opponent confirmation
-- Disputed scores do not change ELO
-- Keeps Courts map, player profiles, stats, and match history
+NEW
+- Uses the 8 custom Paddle League rank badge designs: Rookie, Rally, Challenger, Elite, Master, Champion, Legend, Unreal.
+- Rank badges now appear on the live leaderboard and player profiles.
+- Player profiles show a live ELO progress bar and exactly how much ELO is needed for the next rank.
+- Account now has a Rank Center with all 8 badges and thresholds.
+- Existing Courts, online status, verified match codes, opponent confirmation, official match history, leagues, and Supabase data are preserved.
 
-The Supabase database migration for verified matches/presence has already been applied.
-
-Upload the five files in this ZIP to the GitHub repo root and commit to main. Vercel should redeploy automatically.
+Upload all 5 files to the root of the GitHub repository, replacing the existing files.
