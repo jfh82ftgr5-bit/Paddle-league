@@ -1,26 +1,23 @@
-Paddle League — Courts V2
+Paddle League — Profiles + Activity Feed Update
 
-Adds a reliable local court directory on top of the existing map:
-- Clovis High Tennis Courts
-- Buchanan High Tennis Courts
-- Clovis West High Tennis Courts
-- Clovis East High Tennis Courts
-- Clovis North High Tennis Courts
-- Alta Sierra Intermediate Tennis Courts
-- Clark Intermediate Tennis Courts
-- Sunnyside High Tennis Courts
-- Bullard High Tennis Courts
-- Hoover High Tennis Courts
-- McLane High Tennis Courts
-- Edison High Tennis Courts
-- Fresno City College Tennis Courts
-- East Rotary Park Tennis Courts
-- Orchid Park Tennis Courts
-- Roeding Park Tennis Center
+New:
+- Strava-style Home activity feed for verified league matches
+- Tournament champion posts in the Home feed
+- Upgraded player profiles
+- ELO history graph
+- Current and reconstructed peak ELO
+- Highest rank reached
+- Current streak and point differential
+- Match-style breakdown for 1s / 2s / 3s
+- Tournament win count and trophy cabinet
+- Recent verified match history
+- Court distances display in miles
 
-The app shows these named courts even if live map discovery fails.
-GPS sorts known courts by distance and can merge in additional OpenStreetMap courts.
-School-court access may depend on school practices, events, and campus rules.
-Exact user location is not shared with other players.
+Keeps:
+- Courts V2 local directory
+- Rank System V2 badges and progress
+- Verified match codes and opponent confirmation
+- Online league presence
+- Tournaments Beta
 
-Keeps Rank System V2, verified matches, profiles, and Tournaments Beta.
+Upload the same five files to the GitHub repo root and commit to main.

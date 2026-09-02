@@ -28,6 +28,27 @@
 .accessNote{font-size:9px;color:#aab2c3;margin-top:4px}
 .sourceBadge{font-size:8px;font-weight:900;letter-spacing:.06em;padding:3px 6px;border-radius:999px;background:#24213a;color:#c4b5fd}
 
+
+.activityFeed{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.activityCard{background:#111521;border:1px solid #262d40;border-radius:18px;padding:14px}
+.activityHead{display:flex;align-items:center;gap:10px}
+.activityAvatar{width:42px;height:42px;border-radius:14px;background:#202638;display:grid;place-items:center;font-weight:950}
+.activityBody{margin-top:10px;font-size:13px;line-height:1.45}
+.activityScore{font-size:22px;font-weight:950;letter-spacing:.01em;margin-top:6px}
+.activityMeta{font-size:10px;color:#8e95a8;margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+.feedTitle{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.profileTop{display:flex;align-items:center;gap:14px}
+.profileAvatar{width:68px;height:68px;border-radius:22px;background:linear-gradient(145deg,#22283a,#121622);display:grid;place-items:center;font-size:25px;font-weight:950;border:1px solid #30374b}
+.profileTitle{min-width:0}.profileTitle h1{margin:0 0 4px;font-size:28px}
+.profileRankRow{display:flex;align-items:center;gap:12px;margin-top:12px}
+.profileMetrics{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
+.profileMetric{background:#0c1019;border:1px solid #252b3b;border-radius:14px;padding:11px}
+.profileMetric small{display:block;color:#8e95a8;text-transform:uppercase;letter-spacing:.08em;font-size:9px}
+.profileMetric b{display:block;font-size:19px;margin-top:3px}
+.eloChartWrap{padding:14px}.eloChart{width:100%;height:150px;display:block}.eloGrid{stroke:#252b3b;stroke-width:1}.eloLine{fill:none;stroke:#8b5cf6;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.eloArea{fill:url(#eloGrad)}.eloDot{fill:#c4b5fd;stroke:#0b0f17;stroke-width:3}
+.profileSectionTitle{font-weight:900}
+.trophyRow{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px}.trophyChip{background:#1b1727;border:1px solid #443663;border-radius:12px;padding:9px 11px;font-size:10px}
+
 </style>
 </head>
 <body>
@@ -51,7 +72,12 @@
 <section id="home" class="page on">
   <div class="hero"><h1 id="welcome">Your League</h1><p class="muted">Create or join a league, then start recording ranked matches.</p><div id="currentLeagueChip"></div></div>
   <div id="noLeague" class="card" style="padding:16px"><h2 style="margin:0">Get started</h2><div class="field"><label>Create league</label><input id="newLeagueName" placeholder="Sunnyside Paddle League"></div><button class="btn primary full" style="margin-top:10px" onclick="createLeague()">Create League</button><div class="field" style="margin-top:18px"><label>Join with code</label><input id="joinCode" class="code" maxlength="6" placeholder="ABC123"></div><button class="btn full" style="margin-top:10px" onclick="joinLeague()">Join League</button></div>
-  <div id="leagueDashboard" class="hidden"><div class="stats" id="stats"></div><div class="card"><div class="cardHead"><b>🏆 Leaderboard</b><span class="pill">LIVE</span></div><div id="leader"></div></div></div>
+  <div id="leagueDashboard" class="hidden">
+  <div class="stats" id="stats"></div>
+  <div class="feedTitle"><h2 style="margin:0">Activity</h2><span class="pill">LEAGUE FEED</span></div>
+  <div id="activityFeed" class="activityFeed"></div>
+  <div class="card" style="margin-top:14px"><div class="cardHead"><b>🏆 Leaderboard</b><span class="pill">LIVE</span></div><div id="leader"></div></div>
+</div>
 </section>
 <section id="leagues" class="page"><div class="hero"><h1>Your Leagues</h1><p class="muted">Tap a league to switch to it.</p></div><div class="card" id="leagueList"></div></section>
 <section id="matches" class="page">
@@ -147,8 +173,58 @@ function renderLeagues(){const el=$('leagueList');el.innerHTML=myLeagues.length?
 async function selectLeague(id){currentLeague=myLeagues.find(x=>x.id===id)||null;renderLeagues();await loadCurrentLeague();showPage('home')}
 async function createLeague(){const name=$('newLeagueName').value.trim();if(!name)return toast('Give your league a name.');const {data,error}=await sb.rpc('create_league',{p_name:name,p_season_name:'Season 1'});if(error)return toast(error.message);$('newLeagueName').value='';currentLeague=data?.[0]||null;toast('League created!');await loadLeagues()}
 async function joinLeague(){const code=$('joinCode').value.trim().toUpperCase();if(code.length<4)return toast('Enter the league code.');const {data,error}=await sb.rpc('join_league_by_code',{p_code:code});if(error)return toast(error.message);$('joinCode').value='';currentLeague=data?.[0]||null;toast('Joined league!');await loadLeagues()}
-async function loadCurrentLeague(){if(!currentLeague){$('noLeague').classList.remove('hidden');$('leagueDashboard').classList.add('hidden');$('currentLeagueChip').innerHTML='';members=[];matches=[];renderMatches();return}$('noLeague').classList.add('hidden');$('leagueDashboard').classList.remove('hidden');$('seasonLabel').textContent=`${currentLeague.season_name.toUpperCase()} • RANKED`;$('currentLeagueChip').innerHTML=`<div class="leagueChip"><div class="grow"><b>${escapeHtml(currentLeague.name)}</b><div class="sub">Join code <span class="code">${currentLeague.join_code}</span></div></div><button class="btn" onclick="copyCode()">Copy</button></div>`;const [mr,xr]=await Promise.all([sb.rpc('get_league_members',{p_league_id:currentLeague.id}),sb.rpc('get_league_matches',{p_league_id:currentLeague.id})]);if(mr.error)return toast(mr.error.message);members=mr.data||[];matches=xr.data||[];renderDashboard();renderMatches();renderRankList();await heartbeatPresence();await loadOnlinePlayers();if(activeMatchCode)await refreshVerifiedMatch()}
+async function loadCurrentLeague(){if(!currentLeague){$('noLeague').classList.remove('hidden');$('leagueDashboard').classList.add('hidden');$('currentLeagueChip').innerHTML='';members=[];matches=[];renderMatches();return}$('noLeague').classList.add('hidden');$('leagueDashboard').classList.remove('hidden');$('seasonLabel').textContent=`${currentLeague.season_name.toUpperCase()} • RANKED`;$('currentLeagueChip').innerHTML=`<div class="leagueChip"><div class="grow"><b>${escapeHtml(currentLeague.name)}</b><div class="sub">Join code <span class="code">${currentLeague.join_code}</span></div></div><button class="btn" onclick="copyCode()">Copy</button></div>`;const [mr,xr]=await Promise.all([sb.rpc('get_league_members',{p_league_id:currentLeague.id}),sb.rpc('get_league_matches',{p_league_id:currentLeague.id})]);if(mr.error)return toast(mr.error.message);members=mr.data||[];matches=xr.data||[];renderDashboard();renderActivityFeed();renderMatches();renderRankList();await heartbeatPresence();await loadOnlinePlayers();if(activeMatchCode)await refreshVerifiedMatch()}
 function copyCode(){navigator.clipboard?.writeText(currentLeague.join_code);toast(`Copied ${currentLeague.join_code}`)}
+
+function timeAgo(dateStr){
+  const d=new Date(dateStr),s=Math.max(0,Math.floor((Date.now()-d.getTime())/1000));
+  if(s<60)return 'just now'; if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago'; if(s<604800)return Math.floor(s/86400)+'d ago';
+  return d.toLocaleDateString();
+}
+function renderActivityFeed(){
+  const el=$('activityFeed');if(!el)return;
+  if(!currentLeague){el.innerHTML='<div class="card"><div class="empty">Join a league to see activity.</div></div>';return}
+  const items=[];
+  (matches||[]).forEach(m=>{
+    const a=(m.team1_names||'Team 1'),b=(m.team2_names||'Team 2');
+    items.push({type:'match',date:m.created_at,html:`<div class="activityCard">
+      <div class="activityHead"><div class="activityAvatar">🎾</div><div class="grow"><b>${escapeHtml(a)} vs ${escapeHtml(b)}</b><div class="sub">Verified ${escapeHtml(m.match_type||'1s')} match</div></div><span class="pill">±${m.elo_change||0} ELO</span></div>
+      <div class="activityScore">${escapeHtml(a)} <span class="${m.player1_score>m.player2_score?'win':'loss'}">${m.player1_score}</span> — <span class="${m.player2_score>m.player1_score?'win':'loss'}">${m.player2_score}</span> ${escapeHtml(b)}</div>
+      <div class="activityMeta"><span>✅ Official result</span><span>${timeAgo(m.created_at)}</span></div>
+    </div>`});
+  });
+  try{
+    getTournaments().forEach(t=>{
+      if(t.champion)items.push({type:'tourney',date:t.createdAt,html:`<div class="activityCard">
+        <div class="activityHead"><div class="activityAvatar">🏆</div><div class="grow"><b>${escapeHtml(t.champion.name)} won ${escapeHtml(t.name)}</b><div class="sub">${t.size}-player tournament champion</div></div><span class="pill">CHAMPION</span></div>
+        <div class="activityMeta"><span>🥇 Tournament result</span><span>${timeAgo(t.createdAt)}</span></div>
+      </div>`});
+    });
+  }catch(e){}
+  items.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  el.innerHTML=items.length?items.slice(0,12).map(x=>x.html).join(''):'<div class="card"><div class="empty">No league activity yet. Play a verified match and it’ll show here.</div></div>';
+}
+function buildEloSeries(currentElo,hist){
+  const sorted=[...(hist||[])].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  let total=0;for(const m of sorted)total+=(m.result==='W'?1:-1)*(+m.elo_change||0);
+  let elo=currentElo-total,pts=[elo];
+  for(const m of sorted){elo+=(m.result==='W'?1:-1)*(+m.elo_change||0);pts.push(elo)}
+  return pts;
+}
+function eloChartSvg(values){
+  const vals=values.length?values:[1000],w=320,h=150,pad=14,min=Math.min(...vals)-20,max=Math.max(...vals)+20,span=Math.max(1,max-min);
+  const pts=vals.map((v,i)=>{const x=pad+(w-pad*2)*(vals.length===1?0.5:i/(vals.length-1));const y=h-pad-(h-pad*2)*(v-min)/span;return [x,y]});
+  const line=pts.map(p=>p.join(',')).join(' ');
+  const area=`${pad},${h-pad} ${line} ${w-pad},${h-pad}`;
+  const grids=[.25,.5,.75].map(q=>{const y=pad+(h-pad*2)*q;return `<line class="eloGrid" x1="${pad}" y1="${y}" x2="${w-pad}" y2="${y}"/>`}).join('');
+  const dots=pts.map(([x,y])=>`<circle class="eloDot" cx="${x}" cy="${y}" r="5"/>`).join('');
+  return `<svg class="eloChart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="eloGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".28"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs>${grids}<polygon class="eloArea" points="${area}"/><polyline class="eloLine" points="${line}"/>${dots}</svg>`;
+}
+function playerTournamentWins(userId){
+  try{return getTournaments().filter(t=>t.champion?.id===userId).length}catch(e){return 0}
+}
+
 function renderDashboard(){const top=members[0];$('stats').innerHTML=`<div class="stat"><small>Players</small><b>${members.length}</b></div><div class="stat"><small>Matches</small><b>${matches.length}</b></div><div class="stat"><small>Leader</small><b>${top?escapeHtml(top.display_name):'—'}</b></div>`;$('leader').innerHTML=members.length?members.map((p,i)=>`<div class="row clickable" onclick="showPlayerProfile('${p.user_id}')"><div style="width:22px;color:#7e869a;font-weight:900">${i+1}</div><div class="avatar">${initials(p.display_name)}</div><div class="grow"><div class="name">${escapeHtml(p.display_name)}</div><div class="sub">${p.wins}-${p.losses} • ${pct(p.wins,p.losses)}% • PD ${signed(p.points_for-p.points_against)} • 🔥 ${p.streak}</div></div><div class="leaderRank">${rankImg(p.elo,'sm')}<div class="leaderRankText"><div class="rating">${p.elo}</div>${badge(p.elo)}<div class="sub">View profile ›</div></div></div></div>`).join(''):'<div class="empty">No players yet.</div>'}
 
 function setVerifiedMode(mode){verifiedMode=mode;['1s','2s','3s'].forEach(m=>$('vMode'+m).classList.toggle('on',m===mode))}
@@ -237,26 +313,37 @@ async function showPlayerProfile(userId){
   ]);
   if(pr.error)return toast(pr.error.message);
   if(hr.error)return toast(hr.error.message);
-  const p=pr.data?.[0];
-  if(!p)return toast('Player profile not found.');
-  const hist=hr.data||[];
+  const p=pr.data?.[0];if(!p)return toast('Player profile not found.');
+  const hist=hr.data||[],eloSeries=buildEloSeries(+p.elo,hist),peak=Math.max(...eloSeries,+p.elo),peakRank=rankFor(peak)[0],tWins=playerTournamentWins(userId);
+  const styles=[
+    {name:'Singles',tag:'1s',w:+p.ones_wins||0,l:+p.ones_losses||0},
+    {name:'Doubles',tag:'2s',w:+p.twos_wins||0,l:+p.twos_losses||0},
+    {name:'Trios',tag:'3s',w:+p.threes_wins||0,l:+p.threes_losses||0}
+  ];
+  const favorite=[...styles].sort((a,b)=>(b.w+b.l)-(a.w+a.l))[0];
   $('playerProfileContent').innerHTML=`
     <div class="hero">
-      <div class="rankHero">${rankImg(p.elo,'lg')}<div class="grow"><h1>${escapeHtml(p.display_name)}</h1><div class="sub">${p.elo} ELO • ${escapeHtml(p.rank_name)}</div>${progressMarkup(p.elo)}</div></div>
-      <div class="detailGrid">
-        <div class="detailCard"><small>Record</small><b>${p.wins}-${p.losses}</b></div>
-        <div class="detailCard"><small>Win Rate</small><b>${p.win_pct}%</b></div>
-        <div class="detailCard"><small>Streak</small><b>🔥 ${p.streak}</b></div>
-        <div class="detailCard"><small>Point Diff.</small><b>${signed(p.point_diff)}</b></div>
+      <div class="profileTop">
+        <div class="profileAvatar">${initials(p.display_name)}</div>
+        <div class="profileTitle grow"><h1>${escapeHtml(p.display_name)}</h1><div class="sub">${p.wins}-${p.losses} overall • ${p.win_pct}% win rate</div></div>
+      </div>
+      <div class="profileRankRow">${rankImg(p.elo,'lg')}<div class="grow"><b style="font-size:20px">${escapeHtml(rankFor(p.elo)[0])}</b>${progressMarkup(p.elo)}</div></div>
+      <div class="profileMetrics">
+        <div class="profileMetric"><small>Current ELO</small><b>${p.elo}</b></div>
+        <div class="profileMetric"><small>Peak ELO</small><b>${peak}</b></div>
+        <div class="profileMetric"><small>Highest Rank</small><b>${escapeHtml(peakRank)}</b></div>
+        <div class="profileMetric"><small>Streak</small><b>🔥 ${p.streak}</b></div>
+        <div class="profileMetric"><small>Point Diff.</small><b>${signed(p.point_diff)}</b></div>
+        <div class="profileMetric"><small>Tourney Wins</small><b>🏆 ${tWins}</b></div>
       </div>
     </div>
-    <div class="card"><div class="cardHead"><b>Match Styles</b><span class="pill">STATS</span></div>
-      <div class="row"><div class="avatar">1s</div><div class="grow"><div class="name">Singles</div><div class="sub">1v1 record</div></div><b>${p.ones_wins}-${p.ones_losses}</b></div>
-      <div class="row"><div class="avatar">2s</div><div class="grow"><div class="name">Doubles</div><div class="sub">2v2 record</div></div><b>${p.twos_wins}-${p.twos_losses}</b></div>
-      <div class="row"><div class="avatar">3s</div><div class="grow"><div class="name">Trios</div><div class="sub">3v3 record</div></div><b>${p.threes_wins}-${p.threes_losses}</b></div>
+    <div class="card"><div class="cardHead"><b>📈 ELO History</b><span class="pill">${hist.length} MATCHES</span></div><div class="eloChartWrap">${eloChartSvg(eloSeries)}<div class="sub">Current ${p.elo} • Peak ${peak}</div></div></div>
+    <div class="card"><div class="cardHead"><b>Match Styles</b><span class="pill">${favorite&&favorite.w+favorite.l?`${favorite.tag} MOST PLAYED`:'STATS'}</span></div>
+      ${styles.map(s=>`<div class="row"><div class="avatar">${s.tag}</div><div class="grow"><div class="name">${s.name}</div><div class="sub">${s.w+s.l} played • ${pct(s.w,s.l)}% win rate</div></div><b>${s.w}-${s.l}</b></div>`).join('')}
     </div>
-    <div class="card"><div class="cardHead"><b>Match History</b><span class="pill">${hist.length} MATCHES</span></div>
-      ${hist.length?hist.map(m=>`<div class="row"><div class="historyResult ${m.result==='W'?'win':'loss'}">${m.result}</div><div class="grow"><div class="name"><span class="pill">${m.match_type}</span> ${escapeHtml(m.team1_names)} ${m.score1} — ${m.score2} ${escapeHtml(m.team2_names)}</div><div class="sub">${m.result==='W'?'+':'-'}${m.elo_change} ELO • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No match history yet.</div>'}
+    ${tWins?`<div class="card"><div class="cardHead"><b>🏆 Tournament Cabinet</b><span class="pill">${tWins} WIN${tWins===1?'':'S'}</span></div><div class="trophyRow">${getTournaments().filter(t=>t.champion?.id===userId).map(t=>`<div class="trophyChip">🥇 ${escapeHtml(t.name)}</div>`).join('')}</div></div>`:''}
+    <div class="card"><div class="cardHead"><b>Recent Matches</b><span class="pill">${hist.length} TOTAL</span></div>
+      ${hist.length?hist.slice(0,12).map(m=>`<div class="row"><div class="historyResult ${m.result==='W'?'win':'loss'}">${m.result}</div><div class="grow"><div class="name"><span class="pill">${m.match_type}</span> ${escapeHtml(m.team1_names)} ${m.score1} — ${m.score2} ${escapeHtml(m.team2_names)}</div><div class="sub">${m.result==='W'?'+':'-'}${m.elo_change} ELO • ${timeAgo(m.created_at)}</div></div></div>`).join(''):'<div class="empty">No match history yet.</div>'}
     </div>`;
   showPage('profilePage');
 }
@@ -353,7 +440,7 @@ function renderCourts(){
   }
   nearbyCourts.forEach((c,i)=>{
     if(c.lat==null||c.lng==null)return;
-    const m=L.marker([c.lat,c.lng]).addTo(courtsMap).bindPopup(`<b>${escapeHtml(c.name)}</b><br>${escapeHtml(c.category||c.type)}${c.distance!=null?` • ${c.distance.toFixed(1)} km away`:''}<br><button onclick="selectCourtByIndex(${i})" style="margin-top:7px;padding:7px;border-radius:8px">Start Match Here</button>`);
+    const m=L.marker([c.lat,c.lng]).addTo(courtsMap).bindPopup(`<b>${escapeHtml(c.name)}</b><br>${escapeHtml(c.category||c.type)}${c.distance!=null?` • ${(c.distance*0.621371).toFixed(1)} mi away`:''}<br><button onclick="selectCourtByIndex(${i})" style="margin-top:7px;padding:7px;border-radius:8px">Start Match Here</button>`);
     courtMarkers.push(m)
   });
   $('courtCount').textContent=`${nearbyCourts.length} FOUND`;
@@ -368,7 +455,7 @@ function renderCourts(){
           ${c.tags?.access?`<span class="courtTag">${escapeHtml(c.tags.access)}</span>`:''}
         </div>
         ${c.address?`<div class="courtAddr">${escapeHtml(c.address)}</div>`:''}
-        <div class="courtDistance">${c.distance!=null?`${c.distance.toFixed(1)} km away`:'Tap Directions to open this court on the map'}</div>
+        <div class="courtDistance">${c.distance!=null?`${(c.distance*0.621371).toFixed(1)} mi away`:'Tap Directions to open this court on the map'}</div>
         ${c.access?`<div class="accessNote">${escapeHtml(c.access)}</div>`:''}
         <div class="courtActions">
           <button class="btn" onclick="event.stopPropagation();openDirections(${i})">Directions</button>
@@ -412,10 +499,10 @@ function saveTournaments(x){localStorage.setItem(tournamentKey(),JSON.stringify(
 function openTournamentCreator(){if(!currentLeague)return toast('Choose a league first.');$('tournamentCreator').classList.remove('hidden');$('tournamentName').value=(currentLeague?.season_name||'Season 1')+' Cup';renderTournamentEntrants()}
 function closeTournamentCreator(){$('tournamentCreator').classList.add('hidden')}
 function renderTournamentEntrants(){const size=+$('tournamentSize').value;const top=[...members].sort((a,b)=>b.elo-a.elo).slice(0,size);$('tournamentEntrants').innerHTML=members.length?members.map(p=>`<label class="entrant"><input type="checkbox" class="tEntry" value="${p.user_id}" ${top.some(x=>x.user_id===p.user_id)?'checked':''}><span class="avatar">${initials(p.display_name)}</span><span class="grow"><b>${escapeHtml(p.display_name)}</b><span class="sub">${p.elo} ELO • ${rankFor(p.elo)[0]}</span></span></label>`).join(''):'<div class="empty">No league players yet.</div>'}
-function createTournament(){const size=+$('tournamentSize').value,name=$('tournamentName').value.trim()||'League Cup';const ids=[...document.querySelectorAll('.tEntry:checked')].map(x=>x.value);if(ids.length!==size)return toast(`Choose exactly ${size} players.`);const players=ids.map(id=>members.find(m=>m.user_id===id)).filter(Boolean).sort((a,b)=>b.elo-a.elo).map((p,i)=>({id:p.user_id,name:p.display_name,elo:p.elo,seed:i+1}));const order=size===8?[0,7,3,4,1,6,2,5]:[0,3,1,2];const games=[];for(let i=0;i<size;i+=2)games.push({a:players[order[i]],b:players[order[i+1]],winner:null});const t={id:Date.now().toString(36),name,size,status:'LIVE',createdAt:new Date().toISOString(),rounds:[games]};const all=getTournaments();all.unshift(t);saveTournaments(all);closeTournamentCreator();renderTournaments();toast('Tournament bracket created!')}
+function createTournament(){const size=+$('tournamentSize').value,name=$('tournamentName').value.trim()||'League Cup';const ids=[...document.querySelectorAll('.tEntry:checked')].map(x=>x.value);if(ids.length!==size)return toast(`Choose exactly ${size} players.`);const players=ids.map(id=>members.find(m=>m.user_id===id)).filter(Boolean).sort((a,b)=>b.elo-a.elo).map((p,i)=>({id:p.user_id,name:p.display_name,elo:p.elo,seed:i+1}));const order=size===8?[0,7,3,4,1,6,2,5]:[0,3,1,2];const games=[];for(let i=0;i<size;i+=2)games.push({a:players[order[i]],b:players[order[i+1]],winner:null});const t={id:Date.now().toString(36),name,size,status:'LIVE',createdAt:new Date().toISOString(),rounds:[games]};const all=getTournaments();all.unshift(t);saveTournaments(all);closeTournamentCreator();renderTournaments();renderActivityFeed();toast('Tournament bracket created!')}
 function roundName(i,total){if(total===1)return 'Final';if(i===total-1)return 'Final';if(i===total-2)return 'Semifinals';return 'Quarterfinals'}
-function pickTournamentWinner(tid,ri,gi,side){let all=getTournaments(),t=all.find(x=>x.id===tid);if(!t)return;let g=t.rounds[ri]?.[gi],winner=g?.[side];if(!winner)return;g.winner=winner;const complete=t.rounds[ri].every(x=>x.winner);if(complete){if(t.rounds[ri].length===1){t.status='COMPLETE';t.champion=winner}else if(!t.rounds[ri+1]){const ws=t.rounds[ri].map(x=>x.winner),next=[];for(let i=0;i<ws.length;i+=2)next.push({a:ws[i],b:ws[i+1],winner:null});t.rounds.push(next)}}saveTournaments(all);renderTournaments()}
-function deleteTournament(id){if(!confirm('Delete this tournament?'))return;saveTournaments(getTournaments().filter(t=>t.id!==id));renderTournaments()}
+function pickTournamentWinner(tid,ri,gi,side){let all=getTournaments(),t=all.find(x=>x.id===tid);if(!t)return;let g=t.rounds[ri]?.[gi],winner=g?.[side];if(!winner)return;g.winner=winner;const complete=t.rounds[ri].every(x=>x.winner);if(complete){if(t.rounds[ri].length===1){t.status='COMPLETE';t.champion=winner}else if(!t.rounds[ri+1]){const ws=t.rounds[ri].map(x=>x.winner),next=[];for(let i=0;i<ws.length;i+=2)next.push({a:ws[i],b:ws[i+1],winner:null});t.rounds.push(next)}}saveTournaments(all);renderTournaments();renderActivityFeed()}
+function deleteTournament(id){if(!confirm('Delete this tournament?'))return;saveTournaments(getTournaments().filter(t=>t.id!==id));renderTournaments();renderActivityFeed()}
 function renderTournaments(){if(!currentLeague){$('tournamentList').innerHTML='<div class="card"><div class="empty">Choose a league to view tournaments.</div></div>';return}const ts=getTournaments();$('tournamentList').innerHTML=ts.length?ts.map(t=>{const rounds=t.rounds.map((r,ri)=>`<div class="round"><div class="roundTitle">${roundName(ri,t.rounds.length)}</div>${r.map((g,gi)=>`<div class="game"><div class="seed pick" onclick="pickTournamentWinner('${t.id}',${ri},${gi},'a')"><span>${g.a?`#${g.a.seed} ${escapeHtml(g.a.name)}`:'TBD'}</span><span>${g.winner?.id===g.a?.id?'✓':''}</span></div><div class="seed pick" onclick="pickTournamentWinner('${t.id}',${ri},${gi},'b')"><span>${g.b?`#${g.b.seed} ${escapeHtml(g.b.name)}`:'TBD'}</span><span>${g.winner?.id===g.b?.id?'✓':''}</span></div></div>`).join('')}</div>`).join('');return `<div class="card"><div class="cardHead"><div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.size}-player bracket • seeded by ELO</div></div><span class="pill ${t.status==='LIVE'?'beta':''}">${t.status}</span></div>${t.champion?`<div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div>`:''}<div class="bracket">${rounds}</div><div style="padding:0 14px 14px"><button class="btn danger full" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div></div>`}).join(''):'<div class="card"><div class="empty">No tournaments yet. Create your first league cup! 🏆</div></div>'}
 
 function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='leagues')renderLeagues();if(id==='matches')renderMatches();if(id==='tournaments')renderTournaments()}
