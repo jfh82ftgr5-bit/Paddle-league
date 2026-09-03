@@ -1,24 +1,17 @@
-Paddle League — Global Rank + Clubs Update
+Paddle League — Matches + Tournaments Cleanup
 
-NEW FOUNDATION:
-- One GLOBAL ELO and rank per player
-- Everyone is automatically in the global Paddle League
-- New players start at Rally (800 ELO)
-- Rookie remains available below 800 ELO
-- New Global League page + Global Leaderboard
-- Existing Leagues are now called Clubs in the app
-- Switching Clubs NEVER changes your rank
-- Club leaderboards use each member's global ELO
-- Ranked matches in any Club update the same global ELO
-- Ranked tournaments update global ELO
-- Unranked tournaments update global W/L/stats but not ELO
-- All Tournament V3.1 formats remain included
+NEW:
+- Tournaments are now inside the Matches tab
+- Removed the separate Tourneys bottom tab
+- Bottom navigation is now: Home, League, Clubs, Courts, Matches, Account
+- Scroll down in Matches to create/view tournaments
+- All Tournament V3.1 features remain
+- Global League + Clubs system remains
+- Current players were reset to Rally rank at 800 ELO
+- New players already start at Rally / 800 ELO
 
-MIGRATION:
-- Existing players keep their progress. Their starting global ELO was initialized from their strongest existing club ELO.
-- Existing club records were combined into global stats.
+UPLOAD:
+Upload all 5 files to the root of the GitHub Paddle-league repository and replace the existing versions. Commit directly to main. Vercel should redeploy automatically.
 
-UPLOAD METHOD:
-Upload all 5 files to the root of the GitHub Paddle-league repository, replacing the existing versions, and commit directly to main. Vercel should redeploy automatically.
-
-Supabase backend changes have already been applied.
+Supabase:
+The current 11 players were already reset to 800 ELO. No Supabase work is needed for this update.

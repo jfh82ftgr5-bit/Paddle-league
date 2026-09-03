@@ -151,21 +151,14 @@
   <div class="cardHead"><b id="historyTitle">Official Ranked History</b><span id="historyPill" class="pill">VERIFIED ELO</span></div>
   <div id="matchList"></div>
 </div>
-</section>
 
-<section id="courts" class="page">
-  <div class="hero">
-    <h1>📍 Courts</h1>
-    <p class="muted">Find named local tennis courts first, then sort them by distance when you use GPS. Your exact live location is never shown to other players.</p>
-    <div class="courtToolbar"><button class="btn primary" onclick="findNearbyCourts()">Use My Location</button><button class="btn" onclick="refreshCourts()">Refresh</button></div>
-    <div id="courtStatus" class="locationNote">Local Clovis/Fresno courts are loaded below. Use GPS to sort them by distance and discover more.</div>
-  </div>
-  <div class="mapWrap"><div id="courtsMap" class="mapBox"></div></div>
-  <div class="card courtList"><div class="cardHead"><b>Courts & schools</b><span id="courtCount" class="pill">LOCAL</span></div><div id="courtList"><div class="empty">Loading local courts…</div></div></div>
-</section>
-
-
-<section id="tournaments" class="page">
+<div id="matchesTournaments">
+<div class="hero" style="margin-top:18px"><h1>🏆 Tournaments</h1><p class="muted">Create and manage club tournaments right here under Matches.</p><div class="actions"><button class="btn primary" onclick="openTournamentCreator()">＋ Create Tournament</button><button class="btn" onclick="loadTournaments(true)">Refresh</button></div></div>
+  <div id="tournamentCreator" class="card hidden" style="padding:16px">
+    <b>Create Tournament</b>
+    <div class="field"><label>Tournament name</label><input id="tournamentName" maxlength="32" placeholder="Season 1 Cup"></div>
+    <div class="field"><label>Format</label><select id="tournamentFormat" onchange="renderTournamentEntrants()"><option value="single">Single Elimination</option><option value="double">Double Elimination</option><option value="round_robin">Round Robin</option></select></div>
+    <div claurnaments" class="page">
   <div class="hero"><h1>🏆 Tournaments</h1><p class="muted">Shared club tournaments with official scores, records, seeding, and multiple formats.</p><div class="actions"><button class="btn primary" onclick="openTournamentCreator()">＋ Create Tournament</button><button class="btn" onclick="loadTournaments(true)">Refresh</button></div></div>
   <div id="tournamentCreator" class="card hidden" style="padding:16px">
     <b>Create Tournament</b>
@@ -183,7 +176,7 @@
 <section id="profilePage" class="page"><button class="btn backBtn" onclick="showPage('home')">← Back to League</button><div id="playerProfileContent"></div></section>
 <section id="account" class="page"><div class="hero"><h1>Account</h1><p class="muted" id="accountEmail"></p></div><div class="card" style="padding:16px"><div class="field"><label>Display name</label><input id="accountName" maxlength="24"></div><button class="btn primary full" style="margin-top:10px" onclick="saveDisplayName()">Save Name</button></div><div class="card"><div class="cardHead"><b>👥 Following</b><span id="followingCount" class="pill">0</span></div><div id="followingList"><div class="empty">You aren’t following anyone yet.</div></div></div><div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div></section>
 </main>
-<nav class="bottom"><button class="on" data-page="home"><span>🏠</span>Home</button><button data-page="globalLeague"><span>🌎</span>League</button><button data-page="leagues"><span>🎾</span>Clubs</button><button data-page="tournaments"><span>🥇</span>Tourneys</button><button data-page="courts"><span>📍</span>Courts</button><button data-page="matches"><span>🎾</span>Matches</button><button data-page="account"><span>👤</span>Account</button></nav>
+<nav class="bottom"><button class="on" data-page="home"><span>🏠</span>Home</button><button data-page="globalLeague"><span>🌎</span>League</button><button data-page="leagues"><span>🎾</span>Clubs</button><button data-page="courts"><span>📍</span>Courts</button><button data-page="matches"><span>🎾</span>Matches</button><button data-page="account"><span>👤</span>Account</button></nav>
 </div>
 <div id="toast" class="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -786,7 +779,7 @@ function renderTournaments(){
   const ts=getTournaments();el.innerHTML=ts.length?ts.map(t=>{const body=t.format==='single'?renderSingleTournament(t):t.format==='double'?renderDoubleTournament(t):renderRoundRobinTournament(t);return `<div class="card"><div class="cardHead"><div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.players?.length||0} entrants • ${formatName(t.format)} • seeded by global ELO/performance</div><div class="recordNote">${t.ranked?'🏆 Ranked: official results change W/L + ELO':'🎾 Unranked: official results change W/L, not ELO'}</div></div><div style="text-align:right"><span class="pill ${t.status==='LIVE'?'beta':''}">${t.status}</span><div style="margin-top:5px"><span class="formatPill">${formatName(t.format)}</span><div style="margin-top:5px"><span class="formatPill">${t.ranked?'🏆 RANKED':'🎾 UNRANKED'}</span></div></div></div></div>${t.champion?`<div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div>`:''}${body}${canOrganizeTournament(t)?`<div style="padding:0 14px 14px"><span class="organizerBadge">YOU ARE ORGANIZER</span><button class="btn danger full" style="margin-top:9px" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div>`:'<div class="readonlyNote">Tournament scores are controlled by the organizer.</div>'}</div>`}).join(''):'<div class="card"><div class="empty">No tournaments yet. Create your first club cup! 🏆</div></div>'
 }
 
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches')renderMatches();if(id==='tournaments')loadTournaments();if(id==='account')renderFollowingList()}
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();}if(id==='account')renderFollowingList()}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
