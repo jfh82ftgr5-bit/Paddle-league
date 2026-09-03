@@ -158,12 +158,6 @@
     <b>Create Tournament</b>
     <div class="field"><label>Tournament name</label><input id="tournamentName" maxlength="32" placeholder="Season 1 Cup"></div>
     <div class="field"><label>Format</label><select id="tournamentFormat" onchange="renderTournamentEntrants()"><option value="single">Single Elimination</option><option value="double">Double Elimination</option><option value="round_robin">Round Robin</option></select></div>
-    <div claurnaments" class="page">
-  <div class="hero"><h1>🏆 Tournaments</h1><p class="muted">Shared club tournaments with official scores, records, seeding, and multiple formats.</p><div class="actions"><button class="btn primary" onclick="openTournamentCreator()">＋ Create Tournament</button><button class="btn" onclick="loadTournaments(true)">Refresh</button></div></div>
-  <div id="tournamentCreator" class="card hidden" style="padding:16px">
-    <b>Create Tournament</b>
-    <div class="field"><label>Tournament name</label><input id="tournamentName" maxlength="32" placeholder="Season 1 Cup"></div>
-    <div class="field"><label>Format</label><select id="tournamentFormat" onchange="renderTournamentEntrants()"><option value="single">Single Elimination</option><option value="double">Double Elimination</option><option value="round_robin">Round Robin</option></select></div>
     <div class="field"><label>Maximum players</label><select id="tournamentSize" onchange="renderTournamentEntrants()"><option value="4">Up to 4 players</option><option value="8">Up to 8 players</option><option value="16">Up to 16 players</option><option value="32">Up to 32 players</option></select></div>
     <div class="field"><label>Tournament ranking</label><select id="tournamentRanked"><option value="ranked">🏆 Ranked — W/L + ELO</option><option value="unranked">🎾 Unranked — W/L only</option></select></div>
     <div class="sub" style="margin:8px 0 12px">Single elimination uses top-seed byes. Double elimination removes a player after two losses. Round robin gives everyone a match against every other entrant.</div>
@@ -172,7 +166,22 @@
     <div class="actions"><button class="btn" onclick="closeTournamentCreator()">Cancel</button><button class="btn primary" onclick="createTournament()">Create Tournament</button></div>
   </div>
   <div id="tournamentList"></div>
+</div>
 </section>
+
+<section id="courts" class="page">
+  <div class="hero">
+    <h1>📍 Courts</h1>
+    <p class="muted">Find named local tennis courts first, then sort them by distance when you use GPS. Your exact live location is never shown to other players.</p>
+    <div class="courtToolbar"><button class="btn primary" onclick="findNearbyCourts()">Use My Location</button><button class="btn" onclick="refreshCourts()">Refresh</button></div>
+    <div id="courtStatus" class="locationNote">Local Clovis/Fresno courts are loaded below. Use GPS to sort them by distance and discover more.</div>
+  </div>
+  <div class="mapWrap"><div id="courtsMap" class="mapBox"></div></div>
+  <div class="card courtList"><div class="cardHead"><b>Courts & schools</b><span id="courtCount" class="pill">LOCAL</span></div><div id="courtList"><div class="empty">Loading local courts…</div></div></div>
+</section>
+
+
+
 <section id="profilePage" class="page"><button class="btn backBtn" onclick="showPage('home')">← Back to League</button><div id="playerProfileContent"></div></section>
 <section id="account" class="page"><div class="hero"><h1>Account</h1><p class="muted" id="accountEmail"></p></div><div class="card" style="padding:16px"><div class="field"><label>Display name</label><input id="accountName" maxlength="24"></div><button class="btn primary full" style="margin-top:10px" onclick="saveDisplayName()">Save Name</button></div><div class="card"><div class="cardHead"><b>👥 Following</b><span id="followingCount" class="pill">0</span></div><div id="followingList"><div class="empty">You aren’t following anyone yet.</div></div></div><div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div></section>
 </main>
