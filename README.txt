@@ -1,32 +1,24 @@
-Paddle League — Tournament V3.1
+Paddle League — Global Rank + Clubs Update
 
-NEW:
-- Ranked OR Unranked tournament choice
-- Ranked tournaments: W/L, points, streak, AND ELO
-- Unranked tournaments: W/L, points, and streak, but NO ELO change
-- Single Elimination
-- Double Elimination
-- Round Robin
-- Up to 32 players for elimination tournaments
-- Round Robin capped at 16 players
-- Top-seed byes based on ELO/performance
-- League owner creates the tournament and becomes organizer
-- Organizer enters official tournament scores
-- Shared Supabase tournaments so league members see the same bracket/results
-- Tournament matches appear in player records/history
+NEW FOUNDATION:
+- One GLOBAL ELO and rank per player
+- Everyone is automatically in the global Paddle League
+- New players start at Rally (800 ELO)
+- Rookie remains available below 800 ELO
+- New Global League page + Global Leaderboard
+- Existing Leagues are now called Clubs in the app
+- Switching Clubs NEVER changes your rank
+- Club leaderboards use each member's global ELO
+- Ranked matches in any Club update the same global ELO
+- Ranked tournaments update global ELO
+- Unranked tournaments update global W/L/stats but not ELO
+- All Tournament V3.1 formats remain included
 
-UPLOAD:
-Upload all 5 files in this ZIP to the root of your GitHub Paddle-league repository.
-Choose/confirm replacing the existing files, then commit directly to main.
-Vercel should redeploy automatically.
+MIGRATION:
+- Existing players keep their progress. Their starting global ELO was initialized from their strongest existing club ELO.
+- Existing club records were combined into global stats.
 
-FILES:
-1. index.html
-2. manifest.webmanifest
-3. sw.js
-4. vercel.json
-5. README.txt
+UPLOAD METHOD:
+Upload all 5 files to the root of the GitHub Paddle-league repository, replacing the existing versions, and commit directly to main. Vercel should redeploy automatically.
 
-IMPORTANT:
-The Supabase Tournament V3.1 backend update has already been applied.
-You do not need to run SQL or change Supabase for this update.
+Supabase backend changes have already been applied.
