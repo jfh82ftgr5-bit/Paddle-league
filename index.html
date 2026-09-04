@@ -5,8 +5,28 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070910">
 <link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <title>Paddle League</title>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+window.OneSignalDeferred.push(async function(OneSignal) {
+  try {
+    await OneSignal.init({
+      appId: "1418ad78-7e8d-4833-ba12-2579bea70e29",
+      serviceWorkerPath: "sw.js",
+      serviceWorkerParam: { scope: "/" }
+    });
+    window.PaddleOneSignal = OneSignal;
+  } catch (e) {
+    console.warn("OneSignal init failed", e);
+  }
+});
+</script>
+
 <style>
 *{box-sizing:border-box}body{margin:0;background:#060810;color:#f7f8fc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}.app{max-width:720px;margin:auto;min-height:100vh;padding-bottom:90px}.top{padding:16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;background:#060810ee;backdrop-filter:blur(16px)}.brand{display:flex;gap:10px;align-items:center}.ball{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#22d3ee);display:grid;place-items:center;font-size:22px}.brand b{font-size:18px}.brand small{display:block;color:#858ca0;font-size:9px;letter-spacing:.13em}.btn{background:#191e2b;color:#fff;padding:11px 14px;border-radius:12px;font-weight:850;border:1px solid #2a3042}.primary{background:linear-gradient(135deg,#8b5cf6,#6366f1);border-color:#8b5cf6}.danger{background:#32151e;color:#ff9aaa}.full{width:100%}main{padding:calc(16px + env(safe-area-inset-top)) 16px 8px}.hero{border:1px solid #252a3b;border-radius:23px;padding:19px;background:linear-gradient(145deg,#151828,#0c1018);margin-bottom:13px}.hero h1,.hero h2{margin:0}.hero h1{font-size:29px}.muted{color:#8e95a8}.hero p{margin:6px 0;line-height:1.4}.card{border:1px solid #252a3b;border-radius:19px;background:#10131d;overflow:hidden;margin-bottom:13px}.cardHead{padding:14px 15px;border-bottom:1px solid #252a3b;display:flex;justify-content:space-between;align-items:center}.row{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid #202433}.row:last-child{border:0}.avatar{width:42px;height:42px;border-radius:13px;background:#202638;display:grid;place-items:center;font-weight:950}.grow{flex:1;min-width:0}.name{font-weight:900}.sub{font-size:10px;color:#858da1;margin-top:3px}.right{text-align:right}.rating{font-weight:950}.badge{display:inline-flex;align-items:center;border:1px solid currentColor;border-radius:999px;padding:4px 7px;font-size:9px;font-weight:950;margin-top:3px}.r1{color:#c88745}.r2{color:#7bd64b}.r3{color:#4aa9ff}.r4{color:#b36cff}.r5{color:#55d9ff}.r6{color:#ffd34f}.r7{color:#ff624e}.r8{color:#d68cff}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:11px 0}.stat{padding:12px;border:1px solid #24293a;border-radius:15px;background:#10131d}.stat b{font-size:20px}.stat small{display:block;color:#81899d;font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}.field{margin-top:11px}.field label{display:block;color:#8991a4;font-size:9px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}.field input,.field select{width:100%;background:#090c13;color:#fff;border:1px solid #2a3041;border-radius:11px;padding:12px}.actions{display:flex;gap:8px;margin-top:14px}.actions>*{flex:1}.empty{text-align:center;padding:28px;color:#7f8799}.pill{padding:5px 8px;border-radius:999px;background:#181d2a;color:#aab1c1;font-size:9px;font-weight:900}.win{color:#45dd91}.loss{color:#ff6b7d}.hidden{display:none!important}.auth{min-height:100vh;display:grid;align-items:center;padding:20px}.authBox{width:min(460px,100%);margin:auto}.tabs{display:grid;grid-template-columns:1fr 1fr;background:#0d111a;border:1px solid #252a3b;border-radius:13px;padding:4px;margin:14px 0}.tabs button{padding:9px;border:0;border-radius:9px;background:transparent;color:#8e95a8;font-weight:850}.tabs button.on{background:#202638;color:#fff}.leagueChip{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 11px;background:#0b0f17;border:1px solid #252a3b;border-radius:12px}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;font-weight:900}.bottom{position:fixed;bottom:0;left:0;right:0;background:#0b0e16ee;border-top:1px solid #262b3b;backdrop-filter:blur(16px);display:flex;justify-content:center;z-index:8;padding-bottom:env(safe-area-inset-bottom)}.bottom button{flex:1;min-width:0;max-width:120px;background:transparent;color:#737b90;padding:9px 1px;border:0;font-size:8px;font-weight:850}.bottom button span{display:block;font-size:19px}.bottom button.on{color:#fff}.page{display:none}.page.on{display:block}.toast{position:fixed;left:50%;bottom:95px;transform:translateX(-50%);background:#181d2a;border:1px solid #30364a;border-radius:12px;padding:10px 14px;z-index:30;display:none;max-width:90%;text-align:center}.toast.on{display:block}
 
@@ -95,6 +115,13 @@
 .switch input:checked+.slider{background:#6849e8;border-color:#8b5cf6}
 .switch input:checked+.slider:before{transform:translateX(18px);background:#fff}
 .settingsGroupLabel{padding:10px 15px 4px;font-size:8px;color:#737c91;font-weight:950;letter-spacing:.1em;text-transform:uppercase}
+
+/* Push Notifications V2 */
+.phonePushRow{padding:14px 15px;border-bottom:1px solid #202433}.phonePushRow:last-child{border-bottom:0}
+.phonePushStatus{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#98a2b7}
+.pushDot{width:8px;height:8px;border-radius:50%;background:#687187}.pushDot.on{background:#22c55e;box-shadow:0 0 12px #22c55e99}.pushDot.warn{background:#f59e0b}
+.pushHelp{background:#0b0f18;border:1px solid #282f40;border-radius:14px;padding:12px;margin-top:10px;font-size:10px;line-height:1.55;color:#a7b0c3}
+.pushHelp b{color:#fff}.pushActions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.pushActions .btn{flex:1}
 </style>
 </head>
 <body>
@@ -237,7 +264,22 @@
 
   <div class="accountSectionTitle">Settings</div>
   <div class="card">
-    <div class="settingsGroupLabel">Notifications</div>
+    <div class="settingsGroupLabel">Phone Notifications</div>
+<div class="card">
+  <div class="phonePushRow">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="settingsIcon">📲</div>
+      <div class="settingsText"><b>Lock Screen Notifications</b><small>Receive Paddle League alerts even when the app is closed</small></div>
+    </div>
+    <div id="phonePushStatus" class="phonePushStatus"><span id="phonePushDot" class="pushDot"></span><span id="phonePushStatusText">Checking your device…</span></div>
+    <div id="phonePushHelp" class="pushHelp hidden"></div>
+    <div class="pushActions">
+      <button id="enablePhonePushBtn" class="btn primary" onclick="enablePhonePush()">Enable Phone Notifications</button>
+      <button class="btn" onclick="refreshPhonePushStatus()">Refresh</button>
+    </div>
+  </div>
+</div>
+<div class="settingsGroupLabel">In-App Notification Types</div>
     <div class="settingsRow"><div class="settingsIcon">👥</div><div class="settingsText"><b>New followers</b><small>When another player follows you</small></div><label class="switch"><input id="notifFollows" type="checkbox" onchange="saveNotificationSettings()"><span class="slider"></span></label></div>
     <div class="settingsRow"><div class="settingsIcon">🎾</div><div class="settingsText"><b>Matches</b><small>Match ready and score confirmation alerts</small></div><label class="switch"><input id="notifMatches" type="checkbox" onchange="saveNotificationSettings()"><span class="slider"></span></label></div>
     <div class="settingsRow"><div class="settingsIcon">🏆</div><div class="settingsText"><b>Tournaments</b><small>Tournament starts and results</small></div><label class="switch"><input id="notifTournaments" type="checkbox" onchange="saveNotificationSettings()"><span class="slider"></span></label></div>
@@ -321,6 +363,73 @@ async function saveNotificationSettings(){
   const {error}=await sb.from('notification_settings').upsert(payload);if(error)return toast(error.message);notificationSettings=payload;toast('Notification settings saved')
 }
 function startNotificationPolling(){if(notificationTimer)clearInterval(notificationTimer);notificationTimer=setInterval(()=>loadNotifications(true),30000)}
+function isIOSDevice(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
+function isStandalonePWA(){return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true}
+async function getOneSignalReady(){
+  if(window.PaddleOneSignal)return window.PaddleOneSignal;
+  return new Promise(resolve=>{
+    window.OneSignalDeferred=window.OneSignalDeferred||[];
+    window.OneSignalDeferred.push(async function(OneSignal){
+      window.PaddleOneSignal=OneSignal;resolve(OneSignal);
+    });
+    setTimeout(()=>resolve(window.PaddleOneSignal||null),5000);
+  });
+}
+async function syncOneSignalIdentity(){
+  if(!session?.user?.id)return;
+  const OneSignal=await getOneSignalReady();if(!OneSignal)return;
+  try{await OneSignal.login(session.user.id)}catch(e){console.warn('OneSignal login failed',e)}
+}
+async function refreshPhonePushStatus(){
+  const text=$('phonePushStatusText'),dot=$('phonePushDot'),help=$('phonePushHelp'),btn=$('enablePhonePushBtn');
+  if(!text||!dot)return;
+  dot.className='pushDot';help?.classList.add('hidden');
+  if(!('Notification' in window)){text.textContent='This browser does not support web push.';dot.classList.add('warn');if(btn)btn.disabled=true;return}
+  if(isIOSDevice()&&!isStandalonePWA()){
+    text.textContent='Add Paddle League to your Home Screen first.';
+    dot.classList.add('warn');
+    if(help){help.innerHTML='<b>On iPhone:</b> tap the browser Share button → <b>Add to Home Screen</b> → open Paddle League from the new Home Screen icon → return to Account and tap Enable Phone Notifications.';help.classList.remove('hidden')}
+    if(btn)btn.disabled=false;return
+  }
+  const OneSignal=await getOneSignalReady();
+  if(!OneSignal){text.textContent='Push service is still loading. Tap Refresh in a moment.';dot.classList.add('warn');return}
+  try{
+    await syncOneSignalIdentity();
+    const permission=Notification.permission;
+    const opted=!!OneSignal.User?.PushSubscription?.optedIn;
+    if(permission==='granted'&&opted){
+      text.textContent='Phone notifications are enabled on this device.';
+      dot.classList.add('on');if(btn){btn.textContent='Enabled ✓';btn.disabled=true}
+    }else if(permission==='denied'){
+      text.textContent='Notifications are blocked in your device settings.';
+      dot.classList.add('warn');if(btn){btn.textContent='Notifications Blocked';btn.disabled=true}
+    }else{
+      text.textContent='Phone notifications are not enabled yet.';
+      if(btn){btn.textContent='Enable Phone Notifications';btn.disabled=false}
+    }
+  }catch(e){text.textContent='Could not check push status yet.';dot.classList.add('warn')}
+}
+async function enablePhonePush(){
+  if(isIOSDevice()&&!isStandalonePWA()){
+    await refreshPhonePushStatus();
+    toast('Add Paddle League to your Home Screen first.');
+    return;
+  }
+  const OneSignal=await getOneSignalReady();
+  if(!OneSignal)return toast('Push service is still loading. Try again in a moment.');
+  try{
+    await syncOneSignalIdentity();
+    await OneSignal.Notifications.requestPermission();
+    if(Notification.permission==='granted'){
+      try{await OneSignal.User.PushSubscription.optIn()}catch(e){}
+      toast('Phone notifications enabled! 🔔');
+    }
+    await refreshPhonePushStatus();
+  }catch(e){
+    console.warn(e);toast('Could not enable phone notifications.');
+    await refreshPhonePushStatus();
+  }
+}
 function moderationErrorMessage(err){const m=err?.message||String(err||'');return m.includes('community rules')?m:m}
 async function checkModerationNotice(){
   if(!session)return;
@@ -356,7 +465,7 @@ async function resolveModeration(reportId,action){
 }
 function setAuthMode(mode){authMode=mode;$('signInTab').classList.toggle('on',mode==='signin');$('signUpTab').classList.toggle('on',mode==='signup');$('displayNameField').classList.toggle('hidden',mode!=='signup');$('authButton').textContent=mode==='signin'?'Sign In':'Create Account';$('password').autocomplete=mode==='signin'?'current-password':'new-password'}
 async function submitAuth(){const email=$('email').value.trim(),password=$('password').value,name=$('displayName').value.trim();$('authMsg').textContent='';if(!email||password.length<6){$('authMsg').textContent='Enter a valid email and a password with at least 6 characters.';return}let res;if(authMode==='signup'){res=await sb.auth.signUp({email,password,options:{data:{display_name:name||email.split('@')[0]}}})}else{res=await sb.auth.signInWithPassword({email,password})}if(res.error){$('authMsg').textContent=res.error.message;return}if(authMode==='signup'&&!res.data.session){$('authMsg').textContent='Account created. Check your email to confirm it, then sign in.';return}await boot(res.data.session)}
-async function signOut(){if(notificationTimer){clearInterval(notificationTimer);notificationTimer=null;}await sb.auth.signOut();location.reload()}
+async function signOut(){try{if(window.PaddleOneSignal)await window.PaddleOneSignal.logout()}catch(e){}if(notificationTimer){clearInterval(notificationTimer);notificationTimer=null;}await sb.auth.signOut();location.reload()}
 function rankFor(elo){let t=tiers[0];for(const x of tiers)if(elo>=x[1])t=x;return t}
 function initials(n){return (n||'?').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()}
 function rankIndex(elo){let idx=0;tiers.forEach((t,i)=>{if(elo>=t[1])idx=i});return idx}
@@ -364,7 +473,7 @@ function rankProgressData(elo){const i=rankIndex(elo),cur=tiers[i],next=tiers[i+
 function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class="rankIcon ${cls}" src="${rankImages[d.i]}" alt="${d.cur[0]} rank badge">`}
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
-async function boot(s){session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await checkModerationNotice()}
+async function boot(s){session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice()}
 async function loadGlobalLeague(){
   if(!session)return;
   const [lb,me]=await Promise.all([sb.rpc('get_global_leaderboard'),sb.rpc('get_my_global_stats')]);
@@ -994,7 +1103,7 @@ function renderTournaments(){
   const ts=getTournaments();el.innerHTML=ts.length?ts.map(t=>{const body=t.format==='single'?renderSingleTournament(t):t.format==='double'?renderDoubleTournament(t):renderRoundRobinTournament(t);return `<div class="card"><div class="cardHead"><div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.players?.length||0} entrants • ${formatName(t.format)} • seeded by global ELO/performance</div><div class="recordNote">${t.ranked?'🏆 Ranked: official results change W/L + ELO':'🎾 Unranked: official results change W/L, not ELO'}</div></div><div style="text-align:right"><span class="pill ${t.status==='LIVE'?'beta':''}">${t.status}</span><div style="margin-top:5px"><span class="formatPill">${formatName(t.format)}</span><div style="margin-top:5px"><span class="formatPill">${t.ranked?'🏆 RANKED':'🎾 UNRANKED'}</span></div></div></div></div>${t.champion?`<div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div>`:''}${body}${canOrganizeTournament(t)?`<div style="padding:0 14px 14px"><span class="organizerBadge">YOU ARE ORGANIZER</span><button class="btn danger full" style="margin-top:9px" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div>`:'<div class="readonlyNote">Tournament scores are controlled by the organizer.</div>'}</div>`}).join(''):'<div class="card"><div class="empty">No tournaments yet. Create your first club cup! 🏆</div></div>'
 }
 
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();}if(id==='account'){renderAccountHub();renderFollowingList();loadModerationQueue();loadNotificationSettings()}}
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();}if(id==='account'){renderAccountHub();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
