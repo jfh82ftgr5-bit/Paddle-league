@@ -1,26 +1,27 @@
-Paddle League — Club Management Mini Update
+Paddle League — Account + Settings Cleanup
 
 NEW:
-- Members can leave clubs
-- Leaving a club does NOT affect global ELO, rank, or record
-- Club owners must transfer ownership before leaving
-- Club owners can make/remove admins
-- Club owners can transfer ownership to another member
-- Previous owner automatically becomes an admin after transfer
-- OWNER and ADMIN badges appear in club lists and leaderboards
-- Owners/admins can create tournaments
-- Club Management section added to the Clubs tab
+- Removed the large PADDLE LEAGUE / Sign Out header from every page
+- Pages now start higher and use the phone safe area
+- Sign Out moved into the Account tab
+- Account redesigned as a cleaner Profile + Settings hub
+- Account header shows display name, global rank, ELO, and record
+- Settings section added
+- Notifications setting is visibly reserved for the next Notifications V1 update
+- Community & Safety and Global Ranking status shown in Settings
 
 PRESERVED:
-- Moderation V1
 - Global League + leaderboard
-- Rally / 800 ELO starting rank
+- Clubs + OWNER / ADMIN roles
+- Leave Club + transfer ownership
+- Moderation V1
 - Courts
 - Matches + Tournaments combined
 - Ranked/unranked tournaments
+- Rally / 800 ELO starting rank
 
 UPLOAD:
 Upload/replace all 5 files in the GitHub Paddle-league repository root and commit to main. Vercel should redeploy automatically.
 
 SUPABASE:
-The Club Roles / Leave / Transfer backend update is already applied. No Supabase work is needed.
+No Supabase changes are needed for this UI update.
