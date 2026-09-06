@@ -1,26 +1,21 @@
-Paddle League — ELO + Finals Update (5 Files)
+Paddle League — Bottom Navigation Fix
 
-UPLOAD THESE 5 FILES TO THE ROOT OF YOUR GITHUB Paddle-league REPO:
+WHAT THIS FIXES
+- Bottom navigation no longer uses iOS Safari window-fixed positioning.
+- The app now scrolls inside its own viewport while the nav stays anchored at the bottom.
+- This prevents the bottom bar from jumping/moving when Safari's browser controls expand or collapse.
+
+ALSO INCLUDED
+- Dynamic rank-scaled ELO
+- Players Near Your ELO
+- Double-elimination Championship / Reset Final
+- Proper Champion declaration
+
+UPLOAD THESE 5 FILES TO THE ROOT OF THE GITHUB REPO:
 1. index.html
 2. manifest.webmanifest
 3. sw.js
 4. vercel.json
 5. README.txt
 
-WHAT'S NEW
-- Dynamic, rank-scaled ELO
-- Opponent strength affects ELO changes
-- Higher ranks have stronger loss pressure
-- Close Unreal vs Unreal is about +24 / -30
-- Players Near Your ELO section
-- Proper double-elimination Championship Match
-- Reset Final when needed
-- Proper tournament Champion declaration
-- Advance / Fix Bracket button for older stuck double-elimination tournaments
-- Spectators can see Championship Match / Reset Final labels
-
-IMPORTANT
-- The required Supabase database update has already been applied.
-- You do NOT need to use the Supabase SQL Editor.
-- Upload/replace these 5 files in GitHub on the main branch.
-- Vercel should redeploy automatically after the commit.
+Commit to main and let Vercel redeploy.
