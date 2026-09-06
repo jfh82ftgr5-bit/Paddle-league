@@ -1039,7 +1039,7 @@ function pct(w,l){const n=w+l;return n?Math.round(w/n*100):0}function signed(n){
 
 
 function getTournaments(){return tournamentCache||[]}
-function normalizeTournament(row){const s=row.state||{};return {...row,...s,id:row.id,name:row.name,format:row.format,maxSize:row.max_size,status:row.status,organizerId:row.organizer_id,ranked:!!row.ranked,createdAt:row.created_at}}
+function normalizeTournament(row){const s=row.state||{};return {...row,...s,id:row.id,name:row.name,format:row.format,maxSize:row.max_size,status:row.status,organizerId:row.organizer_id,ranked:!!row.ranked,createdAt:row.created_at,updatedAt:row.updated_at}}
 async function loadTournaments(showToast=false){
   if(!currentLeague){tournamentCache=[];renderTournaments();return}
   const {data,error}=await sb.from('tournaments').select('*').eq('league_id',currentLeague.id).order('created_at',{ascending:false});
@@ -1191,7 +1191,7 @@ function renderTournamentViewerBody(t){
   let html=`<div class="card spectatorCard"><div class="cardHead"><b>${t.status==='LIVE'?'🔴 LIVE NOW':'🏁 COMPLETE'}</b><span class="pill">${formatName(t.format)}</span></div><div style="padding:12px 14px"><div class="liveViewerNote">${t.status==='LIVE'?'Spectator view updates whenever you reopen/refresh the tournament. Only organizers/admins can enter scores.':'This tournament has finished.'}</div></div></div>`;
   if(t.champion)html+=`<div class="card"><div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div></div>`;
   if(t.format==='single'){
-    html+=`<div class="viewerSection"><div class="viewerTitle">Bracket</div>${(t.rounds||[]).map((r,ri)=>`<div class="card"><div class="cardHead"><b>${roundName(ri,t.rounds.length,t.rounds[0]?.length||1)}</b><span class="pill">${r.filter(g=>g.winner).length}/${r.length} complete</span></div><div style="padding:10px 12px">${r.map(renderViewerMatch).join('')}</div></div>`).join('')}</div>`;
+    html+=`<div class="viewerSection"><div class="viewerTitle">${t.status==='COMPLETE'?'Final Bracket':'Bracket'}</div>${(t.rounds||[]).map((r,ri)=>`<div class="card"><div class="cardHead"><b>${roundName(ri,t.rounds.length,t.rounds[0]?.length||1)}</b><span class="pill">${r.filter(g=>g.winner).length}/${r.length} complete</span></div><div style="padding:10px 12px">${r.map(renderViewerMatch).join('')}</div></div>`).join('')}</div>`;
   } else if(t.format==='double'){
     html+=`<div class="viewerSection"><div class="viewerTitle">Double Elimination Bracket</div>${(t.doubleRounds||[]).map(r=>`<div class="card"><div class="cardHead"><b>${r.finalType==='grand'?'🏆 Championship Match':r.finalType==='reset'?'🔥 Reset Final':`Round ${r.roundNo}`}</b></div><div style="padding:10px 12px">${r.finalType?`<div class="sideLabel">${r.finalType==='grand'?'Undefeated finalist vs elimination-side finalist':'Both finalists have 1 loss'}</div>${(r.zeroGames||[]).map(renderViewerMatch).join('')}`:`<div class="sideLabel">Winners side</div>${(r.zeroGames||[]).map(renderViewerMatch).join('')}<div class="sideLabel">Elimination side</div>${(r.oneGames||[]).map(renderViewerMatch).join('')}`}</div></div>`).join('')}</div>`;
   } else {
@@ -1201,12 +1201,67 @@ function renderTournamentViewerBody(t){
   }
   return html;
 }
-function renderTournaments(){
-  const liveStrip=$('liveTournamentsStrip');if(liveStrip){const live=[...getTournaments()].filter(t=>t.status==='LIVE');liveStrip.innerHTML=live.length?`<div class="card spectatorCard"><div class="liveTourHeader"><div class="liveDot"></div><div class="grow"><b>Live Tournaments</b><div class="sub">${live.length} happening now</div></div></div><div style="padding:10px 12px">${live.map(t=>`<div class="leagueCard"><div class="leagueCardTop"><div class="avatar">🏆</div><div class="grow"><div class="name">${escapeHtml(t.name)}</div><div class="sub">${formatName(t.format)} • ${t.ranked?'Ranked':'Unranked'} • ${t.players?.length||0} players</div></div><button class="btn" onclick="openTournamentViewer('${t.id}')">View Live</button></div></div>`).join('')}</div></div>`:''}
-  const el=$('tournamentList');if(!currentLeague){el.innerHTML='<div class="card"><div class="empty">Choose a league to view tournaments.</div></div>';return}
-  const ts=[...getTournaments()].sort((a,b)=>(a.status==='LIVE'?0:1)-(b.status==='LIVE'?0:1)||new Date(b.createdAt)-new Date(a.createdAt));el.innerHTML=ts.length?ts.map(t=>{const body=t.format==='single'?renderSingleTournament(t):t.format==='double'?renderDoubleTournament(t):renderRoundRobinTournament(t);return `<div class="card"><div class="cardHead"><div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.players?.length||0} entrants • ${formatName(t.format)} • seeded by global ELO/performance</div><div class="recordNote">${t.ranked?'🏆 Ranked: official results change W/L + ELO':'🎾 Unranked: official results change W/L, not ELO'}</div></div><div style="text-align:right"><span class="pill ${t.status==='LIVE'?'beta':''}">${t.status}</span><div style="margin-top:5px"><span class="formatPill">${formatName(t.format)}</span><div style="margin-top:5px"><span class="formatPill">${t.ranked?'🏆 RANKED':'🎾 UNRANKED'}</span></div></div></div></div>${t.champion?`<div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div>`:''}${body}<div style="padding:0 14px 12px"><button class="btn full spectatorBtn" onclick="openTournamentViewer('${t.id}')">${t.status==='LIVE'?'👀 View Live Tournament':'View Tournament'}</button></div>${canOrganizeTournament(t)?`<div style="padding:0 14px 14px"><span class="organizerBadge">YOU ARE ORGANIZER</span>${t.format==='double'&&t.status==='LIVE'&&!t.champion?`<button class="btn primary full" style="margin-top:9px" onclick="advanceDoubleTournament('${t.id}')">Advance / Fix Bracket</button>`:''}<button class="btn danger full" style="margin-top:9px" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div>`:'<div class="readonlyNote">Tournament scores are controlled by the organizer.</div>'}</div>`}).join(''):'<div class="card"><div class="empty">No tournaments yet. Create your first club cup! 🏆</div></div>'
+
+function pastTournamentCard(t){
+  const when=new Date(t.updatedAt||t.createdAt||Date.now()).toLocaleDateString();
+  const champ=t.champion?.name?escapeHtml(t.champion.name):'Champion not recorded';
+  return `<div class="card">
+    <div class="cardHead">
+      <div class="grow">
+        <div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div>
+        <div class="sub">${formatName(t.format)} • ${t.players?.length||0} players • ${t.ranked?'Ranked':'Unranked'} • ${when}</div>
+      </div>
+      <span class="pill">COMPLETE</span>
+    </div>
+    <div style="padding:14px">
+      <div class="leagueChip" style="margin-top:0">
+        <div style="font-size:28px">🏆</div>
+        <div class="grow"><div class="sub">TOURNAMENT CHAMPION</div><b>${champ}</b></div>
+      </div>
+      <button class="btn full spectatorBtn" onclick="openTournamentViewer('${t.id}')">View Final Bracket</button>
+    </div>
+  </div>`
 }
 
+function renderTournaments(){
+  const all=[...getTournaments()];
+  const live=all.filter(t=>t.status==='LIVE');
+  const past=all.filter(t=>t.status==='COMPLETE'||!!t.champion).sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt));
+
+  const liveStrip=$('liveTournamentsStrip');
+  if(liveStrip){
+    liveStrip.innerHTML=live.length?`<div class="card spectatorCard">
+      <div class="liveTourHeader"><div class="liveDot"></div><div class="grow"><b>Live Tournaments</b><div class="sub">${live.length} happening now</div></div></div>
+      <div style="padding:10px 12px">${live.map(t=>`<div class="leagueCard"><div class="leagueCardTop"><div class="avatar">🏆</div><div class="grow"><div class="name">${escapeHtml(t.name)}</div><div class="sub">${formatName(t.format)} • ${t.ranked?'Ranked':'Unranked'} • ${t.players?.length||0} players</div></div><button class="btn" onclick="openTournamentViewer('${t.id}')">View Live</button></div></div>`).join('')}</div>
+    </div>`:'';
+  }
+
+  const el=$('tournamentList');
+  if(!currentLeague){el.innerHTML='<div class="card"><div class="empty">Choose a league to view tournaments.</div></div>';return}
+
+  const currentHtml=live.length?`
+    <div class="feedTitle"><h2 style="margin:0">Current Tournaments</h2><span class="pill">${live.length} LIVE</span></div>
+    ${live.map(t=>{
+      const body=t.format==='single'?renderSingleTournament(t):t.format==='double'?renderDoubleTournament(t):renderRoundRobinTournament(t);
+      return `<div class="card">
+        <div class="cardHead">
+          <div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.players?.length||0} entrants • ${formatName(t.format)} • seeded by global ELO/performance</div><div class="recordNote">${t.ranked?'🏆 Ranked: official results change W/L + ELO':'🎾 Unranked: official results change W/L, not ELO'}</div></div>
+          <div style="text-align:right"><span class="pill beta">LIVE</span><div style="margin-top:5px"><span class="formatPill">${formatName(t.format)}</span><div style="margin-top:5px"><span class="formatPill">${t.ranked?'🏆 RANKED':'🎾 UNRANKED'}</span></div></div></div>
+        </div>
+        ${body}
+        <div style="padding:0 14px 12px"><button class="btn full spectatorBtn" onclick="openTournamentViewer('${t.id}')">👀 View Live Tournament</button></div>
+        ${canOrganizeTournament(t)?`<div style="padding:0 14px 14px"><span class="organizerBadge">YOU ARE ORGANIZER</span>${t.format==='double'&&!t.champion?`<button class="btn primary full" style="margin-top:9px" onclick="advanceDoubleTournament('${t.id}')">Advance / Fix Bracket</button>`:''}<button class="btn danger full" style="margin-top:9px" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div>`:'<div class="readonlyNote">Tournament scores are controlled by the organizer.</div>'}
+      </div>`
+    }).join('')}
+  `:'<div class="card"><div class="empty">No live tournaments right now.</div></div>';
+
+  const pastHtml=`
+    <div class="feedTitle" style="margin-top:20px"><h2 style="margin:0">Past Tournaments</h2><span class="pill">${past.length} COMPLETE</span></div>
+    ${past.length?past.map(pastTournamentCard).join(''):'<div class="card"><div class="empty">Finished tournaments will appear here with the champion and final bracket. 🏆</div></div>'}
+  `;
+
+  el.innerHTML=currentHtml+pastHtml;
+}
 function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();}if(id==='account'){renderAccountHub();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
