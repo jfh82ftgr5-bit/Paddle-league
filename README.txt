@@ -1,26 +1,26 @@
-Paddle League — Live Tournament Viewer Mini Update
+Paddle League — ELO + Finals Update (5 Files)
 
-NEW:
-- LIVE tournaments appear at the top of Matches > Tournaments
-- Anyone in the club can tap View Live
-- Read-only spectator view
-- Single elimination bracket viewer
-- Double elimination winners/elimination side viewer
-- Round robin live standings + match results
-- Scores and winners are visible as they are recorded
-- Champion is shown when finished
-- LIVE tournaments are sorted above completed tournaments
+UPLOAD THESE 5 FILES TO THE ROOT OF YOUR GITHUB Paddle-league REPO:
+1. index.html
+2. manifest.webmanifest
+3. sw.js
+4. vercel.json
+5. README.txt
 
-PRESERVED:
-- Push Notifications V2 / OneSignal setup
-- Notifications V1
-- Global League + Clubs
-- Club roles + moderation
-- Courts
-- Matches + Tournaments combined
-- Ranked / unranked tournaments
+WHAT'S NEW
+- Dynamic, rank-scaled ELO
+- Opponent strength affects ELO changes
+- Higher ranks have stronger loss pressure
+- Close Unreal vs Unreal is about +24 / -30
+- Players Near Your ELO section
+- Proper double-elimination Championship Match
+- Reset Final when needed
+- Proper tournament Champion declaration
+- Advance / Fix Bracket button for older stuck double-elimination tournaments
+- Spectators can see Championship Match / Reset Final labels
 
-UPLOAD:
-Upload/replace all 7 files in the GitHub Paddle-league repository root and commit to main.
-
-No Supabase changes are needed for this mini update.
+IMPORTANT
+- The required Supabase database update has already been applied.
+- You do NOT need to use the Supabase SQL Editor.
+- Upload/replace these 5 files in GitHub on the main branch.
+- Vercel should redeploy automatically after the commit.

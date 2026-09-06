@@ -192,6 +192,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 </section>
 <section id="globalLeague" class="page">
   <div class="hero"><h1>🌎 Paddle League</h1><p class="muted">Every player is automatically part of the global league. Ranked matches in any club affect this one ELO and one rank.</p><div id="globalMyRank"></div></div>
+  <div class="card"><div class="cardHead"><div><b>🎯 Players Near Your ELO</b><div class="sub">Your closest competition — roughly 5 above and 5 below.</div></div><span class="pill">NEAR YOU</span></div><div id="nearEloPlayers"><div class="empty">Loading nearby players…</div></div></div>
   <div class="card"><div class="cardHead"><b>🌎 Global Leaderboard</b><span id="globalPlayerCount" class="pill">0 PLAYERS</span></div><div id="globalLeaderboard"><div class="empty">Loading global leaderboard…</div></div></div>
   <div class="card" style="padding:14px"><b>How it works</b><div class="sub" style="margin-top:7px;line-height:1.5">New players start at <b style="color:#7bd64b">Rally • 800 ELO</b>. Rookie still exists below Rally. Your rank follows you everywhere, while Clubs are just the groups you play and compete in.</div></div>
 </section><section id="leagues" class="page">
@@ -252,7 +253,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
     <div class="field"><label>Format</label><select id="tournamentFormat" onchange="renderTournamentEntrants()"><option value="single">Single Elimination</option><option value="double">Double Elimination</option><option value="round_robin">Round Robin</option></select></div>
     <div class="field"><label>Maximum players</label><select id="tournamentSize" onchange="renderTournamentEntrants()"><option value="4">Up to 4 players</option><option value="8">Up to 8 players</option><option value="16">Up to 16 players</option><option value="32">Up to 32 players</option></select></div>
     <div class="field"><label>Tournament ranking</label><select id="tournamentRanked"><option value="ranked">🏆 Ranked — W/L + ELO</option><option value="unranked">🎾 Unranked — W/L only</option></select></div>
-    <div class="sub" style="margin:8px 0 12px">Single elimination uses top-seed byes. Double elimination removes a player after two losses. Round robin gives everyone a match against every other entrant.</div>
+    <div class="sub" style="margin:8px 0 12px">Single elimination uses top-seed byes. Double elimination removes a player after two losses and uses a championship/reset final when needed. Round robin gives everyone a match against every other entrant.</div>
     <div class="field"><label>Choose players</label><div id="tournamentEntrants"></div></div>
     <div class="recordNote">Ranked tournaments change ELO. Unranked tournaments still count toward W/L, streak, and point differential.</div>
     <div class="actions"><button class="btn" onclick="closeTournamentCreator()">Cancel</button><button class="btn primary" onclick="createTournament()">Create Tournament</button></div>
@@ -513,10 +514,34 @@ function renderHomeGlobalRank(){
   el.innerHTML=`<div style="display:flex;align-items:center;gap:12px">${rankImg(p.elo,'sm')}<div class="grow"><div class="sub">YOUR GLOBAL RANK</div><b style="font-size:17px">${rankFor(p.elo)[0]} • ${p.elo} ELO</b><div class="sub">${pos?`#${pos} globally • `:''}${p.wins}-${p.losses} record</div></div><button class="btn" onclick="showPage('globalLeague')">View</button></div>`
 }
 function renderGlobalLeague(){
-  const list=$('globalLeaderboard'),mine=$('globalMyRank');if(!list||!mine)return;
+  const list=$('globalLeaderboard'),mine=$('globalMyRank'),near=$('nearEloPlayers');if(!list||!mine)return;
   const p=myGlobalStats,pos=p?globalLeaderboard.findIndex(x=>x.user_id===p.user_id)+1:0;
   mine.innerHTML=p?`<div class="leagueChip"><div>${rankImg(p.elo,'sm')}</div><div class="grow"><div class="sub">YOUR GLOBAL RANK</div><b>${rankFor(p.elo)[0]} • ${p.elo} ELO</b><div class="sub">${pos?`#${pos} of ${globalLeaderboard.length} players • `:''}${p.wins}-${p.losses} • PD ${signed(p.points_for-p.points_against)}</div></div></div>`:'';
   if($('globalPlayerCount'))$('globalPlayerCount').textContent=`${globalLeaderboard.length} PLAYER${globalLeaderboard.length===1?'':'S'}`;
+
+  if(near){
+    if(!p||!globalLeaderboard.length){
+      near.innerHTML='<div class="empty">Play a ranked match to build your nearby competition list.</div>';
+    }else{
+      const sorted=[...globalLeaderboard].sort((a,b)=>b.elo-a.elo||b.wins-a.wins||a.display_name.localeCompare(b.display_name));
+      const myIndex=sorted.findIndex(x=>x.user_id===p.user_id);
+      let nearby=[];
+      if(myIndex>=0){
+        const above=sorted.slice(Math.max(0,myIndex-5),myIndex);
+        const below=sorted.slice(myIndex+1,myIndex+6);
+        nearby=[...above,sorted[myIndex],...below];
+        if(nearby.length<11){
+          const chosen=new Set(nearby.map(x=>x.user_id));
+          const extras=sorted.filter(x=>!chosen.has(x.user_id)).sort((a,b)=>Math.abs(a.elo-p.elo)-Math.abs(b.elo-p.elo)).slice(0,11-nearby.length);
+          nearby=[...nearby,...extras].sort((a,b)=>b.elo-a.elo);
+        }
+      }else{
+        nearby=[...sorted].sort((a,b)=>Math.abs(a.elo-p.elo)-Math.abs(b.elo-p.elo)).slice(0,10).sort((a,b)=>b.elo-a.elo);
+      }
+      near.innerHTML=nearby.map(x=>`<div class="row" style="${x.user_id===session?.user?.id?'background:#17152a':''}"><div class="avatar">${initials(x.display_name)}</div><div class="grow"><div class="name">${escapeHtml(x.display_name)} ${x.user_id===session?.user?.id?'<span class="activeLeagueBadge">YOU</span>':''}</div><div class="sub">${x.wins}-${x.losses} • ${Math.abs(x.elo-p.elo)} ELO away • ${rankFor(x.elo)[0]}</div></div><div class="leaderRank">${rankImg(x.elo,'sm')}<div class="leaderRankText"><div class="rating">${x.elo}</div>${badge(x.elo)}</div></div></div>`).join('');
+    }
+  }
+
   list.innerHTML=globalLeaderboard.length?globalLeaderboard.map((x,i)=>`<div class="row"><div style="width:25px;color:${i<3?'#ffd34f':'#7e869a'};font-weight:950">${i+1}</div><div class="avatar">${initials(x.display_name)}</div><div class="grow"><div class="name">${escapeHtml(x.display_name)} ${x.user_id===session?.user?.id?'<span class="activeLeagueBadge">YOU</span>':''}</div><div class="sub">${x.wins}-${x.losses} • ${pct(x.wins,x.losses)}% • PD ${signed(x.points_for-x.points_against)} • 🔥 ${x.streak}</div></div><div class="leaderRank">${rankImg(x.elo,'sm')}<div class="leaderRankText"><div class="rating">${x.elo}</div>${badge(x.elo)}</div></div></div>`).join(''):'<div class="empty">No players yet.</div>'
 }
 function roleBadge(role){return role==='owner'?'<span class="roleBadge roleOwner">OWNER</span>':role==='admin'?'<span class="roleBadge roleAdmin">ADMIN</span>':''}
@@ -789,7 +814,7 @@ async function confirmVerifiedScore(ok){
 }
 function closeActiveMatch(){activeMatchCode=null;activeMatch=null;renderVerifiedLobby()}
 
-function renderMatches(){if(!currentLeague){$('matchList').innerHTML='<div class="empty">Choose a club first.</div>';return}if(playMode==='casual'){$('matchList').innerHTML=casualMatches.length?casualMatches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.score1>m.score2?'win':'loss'}">${m.score1}</span> — <span class="${m.score2>m.score1?'win':'loss'}">${m.score2}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">🎾 Casual • No ELO${m.court_name?' • 📍 '+escapeHtml(m.court_name):''} • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No casual matches yet. Create one and play without rank pressure.</div>';return}$('matchList').innerHTML=matches.length?matches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.player1_score>m.player2_score?'win':'loss'}">${m.player1_score}</span> — <span class="${m.player2_score>m.player1_score?'win':'loss'}">${m.player2_score}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">±${m.elo_change} ELO • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No ranked matches yet.</div>'}
+function renderMatches(){if(!currentLeague){$('matchList').innerHTML='<div class="empty">Choose a club first.</div>';return}if(playMode==='casual'){$('matchList').innerHTML=casualMatches.length?casualMatches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.score1>m.score2?'win':'loss'}">${m.score1}</span> — <span class="${m.score2>m.score1?'win':'loss'}">${m.score2}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">🎾 Casual • No ELO${m.court_name?' • 📍 '+escapeHtml(m.court_name):''} • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No casual matches yet. Create one and play without rank pressure.</div>';return}$('matchList').innerHTML=matches.length?matches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.player1_score>m.player2_score?'win':'loss'}">${m.player1_score}</span> — <span class="${m.player2_score>m.player1_score?'win':'loss'}">${m.player2_score}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">Winner +${m.elo_change} ELO • dynamic rank-scaled rating • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No ranked matches yet.</div>'}
 
 async function getFollowInfo(userId){
   const [followers,following,mine]=await Promise.all([
@@ -1053,7 +1078,10 @@ function pairLossGroup(group,roundNo,label){
 }
 function makeDoubleRound(players,losses,roundNo){
   const active=players.filter(p=>(losses[p.id]||0)<2),zero=active.filter(p=>(losses[p.id]||0)===0),one=active.filter(p=>(losses[p.id]||0)===1);
-  return{roundNo,zeroGames:pairLossGroup(zero,roundNo,'W'),oneGames:pairLossGroup(one,roundNo,'L')}
+  return{roundNo,zeroGames:pairLossGroup(zero,roundNo,'W'),oneGames:pairLossGroup(one,roundNo,'L'),finalType:null}
+}
+function makeDoubleFinalRound(a,b,roundNo,finalType){
+  return{roundNo,finalType,zeroGames:[{key:`D-R${roundNo}-${finalType==='reset'?'RESET':'FINAL'}`,a,b,winner:null,scoreA:null,scoreB:null,bye:false}],oneGames:[]}
 }
 function makeDoubleState(players){const losses=Object.fromEntries(players.map(p=>[p.id,0]));return{players,losses,doubleRounds:[makeDoubleRound(players,losses,1)],champion:null}}
 async function createTournament(){
@@ -1091,9 +1119,26 @@ function rrStandings(t){
 }
 function finishRoundRobin(t){if((t.rrMatches||[]).every(g=>g.winner)){const st=rrStandings(t);t.champion=st[0]?.p||null}}
 function finishDoubleRound(t){
-  const r=t.doubleRounds[t.doubleRounds.length-1],games=[...(r.zeroGames||[]),...(r.oneGames||[])];if(!games.every(g=>g.winner))return;
-  const active=t.players.filter(p=>(t.losses[p.id]||0)<2);if(active.length===1){t.champion=active[0];return}
-  t.doubleRounds.push(makeDoubleRound(t.players,t.losses,r.roundNo+1))
+  const r=t.doubleRounds[t.doubleRounds.length-1],games=[...(r.zeroGames||[]),...(r.oneGames||[])];if(!games.length||!games.every(g=>g.winner))return false;
+  const active=t.players.filter(p=>(t.losses[p.id]||0)<2);
+  if(active.length===1){t.champion=active[0];return true}
+  const zero=active.filter(p=>(t.losses[p.id]||0)===0),one=active.filter(p=>(t.losses[p.id]||0)===1);
+  if(active.length===2&&zero.length===1&&one.length===1){
+    if(r.finalType==='grand')return false;
+    t.doubleRounds.push(makeDoubleFinalRound(zero[0],one[0],r.roundNo+1,'grand'));return true
+  }
+  if(active.length===2&&zero.length===0&&one.length===2){
+    if(r.finalType==='reset')return false;
+    t.doubleRounds.push(makeDoubleFinalRound(one[0],one[1],r.roundNo+1,'reset'));return true
+  }
+  t.doubleRounds.push(makeDoubleRound(t.players,t.losses,r.roundNo+1));return true
+}
+async function advanceDoubleTournament(tid){
+  const t=tournamentCache.find(x=>x.id===tid);if(!t||!canOrganizeTournament(t))return toast('Only the tournament organizer can advance the bracket.');
+  if(t.format!=='double'||t.champion)return;
+  const changed=finishDoubleRound(t);
+  if(!changed)return toast('There is still a match that needs a score.');
+  try{await saveTournamentState(t);await loadTournaments();toast(t.champion?`🏆 ${t.champion.name} is the tournament champion!`:'Championship bracket advanced.')}catch(e){toast(e.message)}
 }
 async function enterTournamentScore(tid,key){
   const t=tournamentCache.find(x=>x.id===tid);if(!t||!canOrganizeTournament(t))return toast('Only the tournament organizer can enter scores.');
@@ -1123,7 +1168,7 @@ function renderRoundRobinTournament(t){
   const st=rrStandings(t),schedule=(t.rrMatches||[]).map(g=>tournamentGameHtml(t,g)).join('');
   return `<div class="cardHead"><b>Standings</b><span class="pill">W-L • PD</span></div><div class="standings">${st.map((x,i)=>`<div class="standingRow"><b>${i+1}</b><span>${escapeHtml(x.p.name)}</span><b>${x.w}-${x.l}</b><span>${signed(x.pf-x.pa)} PD</span></div>`).join('')}</div><div class="cardHead"><b>Round Robin Matches</b><span class="pill">${(t.rrMatches||[]).filter(g=>g.winner).length}/${(t.rrMatches||[]).length}</span></div><div class="bracket"><div class="round" style="min-width:240px">${schedule}</div></div>`
 }
-function renderDoubleTournament(t){return`<div class="bracket">${(t.doubleRounds||[]).map(r=>`<div class="round"><div class="roundTitle">Round ${r.roundNo}</div><div class="sideLabel">Winners side • 0 losses</div>${(r.zeroGames||[]).map(g=>tournamentGameHtml(t,g)).join('')}<div class="sideLabel">Elimination side • 1 loss</div>${(r.oneGames||[]).map(g=>tournamentGameHtml(t,g)).join('')}</div>`).join('')}</div>`}
+function renderDoubleTournament(t){return`<div class="bracket">${(t.doubleRounds||[]).map(r=>`<div class="round"><div class="roundTitle">${r.finalType==='grand'?'🏆 Championship Match':r.finalType==='reset'?'🔥 Reset Final':`Round ${r.roundNo}`}</div>${r.finalType?`<div class="sideLabel">${r.finalType==='grand'?'Undefeated finalist vs elimination-side finalist':'Both finalists have 1 loss — winner takes the title'}</div>${(r.zeroGames||[]).map(g=>tournamentGameHtml(t,g)).join('')}`:`<div class="sideLabel">Winners side • 0 losses</div>${(r.zeroGames||[]).map(g=>tournamentGameHtml(t,g)).join('')}<div class="sideLabel">Elimination side • 1 loss</div>${(r.oneGames||[]).map(g=>tournamentGameHtml(t,g)).join('')}`}</div>`).join('')}</div>`}
 function openTournamentViewer(tid){
   const t=tournamentCache.find(x=>x.id===tid);if(!t)return toast('Tournament not found.');
   $('viewerTournamentName').textContent=t.name||'Tournament';
@@ -1148,7 +1193,7 @@ function renderTournamentViewerBody(t){
   if(t.format==='single'){
     html+=`<div class="viewerSection"><div class="viewerTitle">Bracket</div>${(t.rounds||[]).map((r,ri)=>`<div class="card"><div class="cardHead"><b>${roundName(ri,t.rounds.length,t.rounds[0]?.length||1)}</b><span class="pill">${r.filter(g=>g.winner).length}/${r.length} complete</span></div><div style="padding:10px 12px">${r.map(renderViewerMatch).join('')}</div></div>`).join('')}</div>`;
   } else if(t.format==='double'){
-    html+=`<div class="viewerSection"><div class="viewerTitle">Double Elimination Bracket</div>${(t.doubleRounds||[]).map(r=>`<div class="card"><div class="cardHead"><b>Round ${r.roundNo}</b></div><div style="padding:10px 12px"><div class="sideLabel">Winners side</div>${(r.zeroGames||[]).map(renderViewerMatch).join('')}<div class="sideLabel">Elimination side</div>${(r.oneGames||[]).map(renderViewerMatch).join('')}</div></div>`).join('')}</div>`;
+    html+=`<div class="viewerSection"><div class="viewerTitle">Double Elimination Bracket</div>${(t.doubleRounds||[]).map(r=>`<div class="card"><div class="cardHead"><b>${r.finalType==='grand'?'🏆 Championship Match':r.finalType==='reset'?'🔥 Reset Final':`Round ${r.roundNo}`}</b></div><div style="padding:10px 12px">${r.finalType?`<div class="sideLabel">${r.finalType==='grand'?'Undefeated finalist vs elimination-side finalist':'Both finalists have 1 loss'}</div>${(r.zeroGames||[]).map(renderViewerMatch).join('')}`:`<div class="sideLabel">Winners side</div>${(r.zeroGames||[]).map(renderViewerMatch).join('')}<div class="sideLabel">Elimination side</div>${(r.oneGames||[]).map(renderViewerMatch).join('')}`}</div></div>`).join('')}</div>`;
   } else {
     const st=rrStandings(t);
     html+=`<div class="viewerSection"><div class="viewerTitle">Live Standings</div><div class="card"><div class="standings">${st.map((x,i)=>`<div class="standingRow"><b>${i+1}</b><span>${escapeHtml(x.p.name)}</span><b>${x.w}-${x.l}</b><span>${signed(x.pf-x.pa)} PD</span></div>`).join('')}</div></div></div>`;
@@ -1159,7 +1204,7 @@ function renderTournamentViewerBody(t){
 function renderTournaments(){
   const liveStrip=$('liveTournamentsStrip');if(liveStrip){const live=[...getTournaments()].filter(t=>t.status==='LIVE');liveStrip.innerHTML=live.length?`<div class="card spectatorCard"><div class="liveTourHeader"><div class="liveDot"></div><div class="grow"><b>Live Tournaments</b><div class="sub">${live.length} happening now</div></div></div><div style="padding:10px 12px">${live.map(t=>`<div class="leagueCard"><div class="leagueCardTop"><div class="avatar">🏆</div><div class="grow"><div class="name">${escapeHtml(t.name)}</div><div class="sub">${formatName(t.format)} • ${t.ranked?'Ranked':'Unranked'} • ${t.players?.length||0} players</div></div><button class="btn" onclick="openTournamentViewer('${t.id}')">View Live</button></div></div>`).join('')}</div></div>`:''}
   const el=$('tournamentList');if(!currentLeague){el.innerHTML='<div class="card"><div class="empty">Choose a league to view tournaments.</div></div>';return}
-  const ts=[...getTournaments()].sort((a,b)=>(a.status==='LIVE'?0:1)-(b.status==='LIVE'?0:1)||new Date(b.createdAt)-new Date(a.createdAt));el.innerHTML=ts.length?ts.map(t=>{const body=t.format==='single'?renderSingleTournament(t):t.format==='double'?renderDoubleTournament(t):renderRoundRobinTournament(t);return `<div class="card"><div class="cardHead"><div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.players?.length||0} entrants • ${formatName(t.format)} • seeded by global ELO/performance</div><div class="recordNote">${t.ranked?'🏆 Ranked: official results change W/L + ELO':'🎾 Unranked: official results change W/L, not ELO'}</div></div><div style="text-align:right"><span class="pill ${t.status==='LIVE'?'beta':''}">${t.status}</span><div style="margin-top:5px"><span class="formatPill">${formatName(t.format)}</span><div style="margin-top:5px"><span class="formatPill">${t.ranked?'🏆 RANKED':'🎾 UNRANKED'}</span></div></div></div></div>${t.champion?`<div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div>`:''}${body}<div style="padding:0 14px 12px"><button class="btn full spectatorBtn" onclick="openTournamentViewer('${t.id}')">${t.status==='LIVE'?'👀 View Live Tournament':'View Tournament'}</button></div>${canOrganizeTournament(t)?`<div style="padding:0 14px 14px"><span class="organizerBadge">YOU ARE ORGANIZER</span><button class="btn danger full" style="margin-top:9px" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div>`:'<div class="readonlyNote">Tournament scores are controlled by the organizer.</div>'}</div>`}).join(''):'<div class="card"><div class="empty">No tournaments yet. Create your first club cup! 🏆</div></div>'
+  const ts=[...getTournaments()].sort((a,b)=>(a.status==='LIVE'?0:1)-(b.status==='LIVE'?0:1)||new Date(b.createdAt)-new Date(a.createdAt));el.innerHTML=ts.length?ts.map(t=>{const body=t.format==='single'?renderSingleTournament(t):t.format==='double'?renderDoubleTournament(t):renderRoundRobinTournament(t);return `<div class="card"><div class="cardHead"><div><div class="tourneyTitle">🏆 ${escapeHtml(t.name)}</div><div class="sub">${t.players?.length||0} entrants • ${formatName(t.format)} • seeded by global ELO/performance</div><div class="recordNote">${t.ranked?'🏆 Ranked: official results change W/L + ELO':'🎾 Unranked: official results change W/L, not ELO'}</div></div><div style="text-align:right"><span class="pill ${t.status==='LIVE'?'beta':''}">${t.status}</span><div style="margin-top:5px"><span class="formatPill">${formatName(t.format)}</span><div style="margin-top:5px"><span class="formatPill">${t.ranked?'🏆 RANKED':'🎾 UNRANKED'}</span></div></div></div></div>${t.champion?`<div class="championBox"><div class="trophyBig">🏆</div><b>${escapeHtml(t.champion.name)}</b><div class="sub">TOURNAMENT CHAMPION</div></div>`:''}${body}<div style="padding:0 14px 12px"><button class="btn full spectatorBtn" onclick="openTournamentViewer('${t.id}')">${t.status==='LIVE'?'👀 View Live Tournament':'View Tournament'}</button></div>${canOrganizeTournament(t)?`<div style="padding:0 14px 14px"><span class="organizerBadge">YOU ARE ORGANIZER</span>${t.format==='double'&&t.status==='LIVE'&&!t.champion?`<button class="btn primary full" style="margin-top:9px" onclick="advanceDoubleTournament('${t.id}')">Advance / Fix Bracket</button>`:''}<button class="btn danger full" style="margin-top:9px" onclick="deleteTournament('${t.id}')">Delete Tournament</button></div>`:'<div class="readonlyNote">Tournament scores are controlled by the organizer.</div>'}</div>`}).join(''):'<div class="card"><div class="empty">No tournaments yet. Create your first club cup! 🏆</div></div>'
 }
 
 function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();}if(id==='account'){renderAccountHub();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
