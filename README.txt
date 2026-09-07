@@ -1,28 +1,19 @@
-Paddle League — Profile Polish Update
+Paddle League — U.S. Court Finder Update
 
 WHAT'S NEW
-- Current Streak is wins-only and never shows negative numbers.
-- A loss resets Current Streak to 0.
-- New Highest Streak stat tracks the player's best win streak.
-- Existing players' Highest Streak was recovered from saved official match history.
-- Player profiles are now clickable from:
-  • Global Leaderboard
-  • Players Near Your ELO
-  • Club leaderboard (already supported)
-  • Ranked finished matches
-  • Ranked activity-feed match results
-  • Recent ranked matches inside profiles
-  • Tournament brackets
-  • Spectator/final tournament brackets
-  • Tournament champion cards/results
-- Existing Past Tournaments, ELO, championship/reset-final logic,
-  notifications, courts, moderation, and fixed bottom navigation are preserved.
+- Nationwide court discovery using OpenStreetMap data.
+- Near Me search using the device location only after permission.
+- Search by U.S. city or ZIP code.
+- Finds mapped tennis, pickleball, padel, and paddle-tennis courts.
+- Distance sorting and up to 100 nearby results.
+- Expand Area button searches roughly 7, 16, 31, then 50 miles.
+- Sport filters for Tennis, Pickleball, and Padel.
+- Shows mapped access, lighting, address, and facility info when available.
+- Keeps the saved Fresno/Clovis court list as a local fallback.
+- Exact live player location is not saved to Supabase or shown to other players.
+- All previous ELO, streak, profile, tournament, notification, moderation, and navigation updates remain included.
 
-DATABASE
-- The required Supabase update has already been applied.
-- You do NOT need to use the SQL Editor.
-
-UPLOAD THE SAME 5 FILES TO THE ROOT OF THE GITHUB REPO:
+UPLOAD/REPLACE THESE SAME 5 FILES IN THE GITHUB REPO ROOT:
 1. index.html
 2. manifest.webmanifest
 3. sw.js
@@ -30,3 +21,6 @@ UPLOAD THE SAME 5 FILES TO THE ROOT OF THE GITHUB REPO:
 5. README.txt
 
 Commit to main and let Vercel redeploy.
+
+NOTE
+Court listings come from community-maintained OpenStreetMap data, so availability/access details can be incomplete. Players should follow posted facility rules and hours.
