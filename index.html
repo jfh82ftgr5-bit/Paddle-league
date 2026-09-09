@@ -142,6 +142,8 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 .viewerWinner{color:#7ee2a8}
 .viewerBye{color:#b9a7ff;font-size:9px;font-weight:950}
 .liveViewerNote{font-size:9px;color:#8f98ad;line-height:1.45}
+
+.achievementGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}.achievementCard{background:#0b0f17;border:1px solid #282e40;border-radius:15px;padding:12px;min-height:118px}.achievementCard.unlocked{border-color:#7058d8;background:linear-gradient(145deg,#171329,#0b0f17)}.achievementIcon{font-size:26px}.achievementCard h4{margin:7px 0 3px;font-size:13px}.achievementCard .sub{font-size:10px}.achievementProgress{height:6px;background:#242a39;border-radius:999px;overflow:hidden;margin-top:9px}.achievementProgress i{display:block;height:100%;background:#8a70ff;border-radius:999px}.achievementDone{font-size:9px;font-weight:950;color:#b9a7ff;margin-top:8px;letter-spacing:.08em}.achievementSummary{display:flex;align-items:center;gap:12px}.achievementCount{font-size:28px;font-weight:950}.achievementCategory{margin-top:16px;font-size:11px;font-weight:950;color:#aab1c3;text-transform:uppercase;letter-spacing:.08em}
 </style>
 </head>
 <body>
@@ -852,14 +854,57 @@ async function renderFollowingList(){
   const rows=data||[];if($('followingCount'))$('followingCount').textContent=rows.length;
   el.innerHTML=rows.length?rows.map(r=>`<div class="followingRow"><div class="avatar">${initials(r.profiles?.display_name||'P')}</div><div class="grow"><div class="name">${escapeHtml(r.profiles?.display_name||'Player')}</div><span class="followingBadge">FOLLOWING</span></div></div>`).join(''):'<div class="empty">You aren’t following anyone yet. Open a player from a league leaderboard to follow them.</div>'
 }
+const ACHIEVEMENTS=[
+ ['Wins','win_1','🎯','First Victory','Win your first ranked match','wins',1],
+ ['Wins','win_10','🥉','Getting Started','Win 10 ranked matches','wins',10],
+ ['Wins','win_25','🥈','Winner','Win 25 ranked matches','wins',25],
+ ['Wins','win_50','🏅','Fifty Club','Win 50 ranked matches','wins',50],
+ ['Wins','win_100','💯','Century','Win 100 ranked matches','wins',100],
+ ['Wins','win_250','⚡','Veteran','Win 250 ranked matches','wins',250],
+ ['Wins','win_500','👑','Elite Winner','Win 500 ranked matches','wins',500],
+ ['Wins','win_1000','🏆','Legendary Winner','Win 1,000 ranked matches','wins',1000],
+ ['Matches','matches_10','🎾','Regular','Play 10 ranked matches','matches',10],
+ ['Matches','matches_50','📚','Experienced','Play 50 ranked matches','matches',50],
+ ['Matches','matches_100','🔥','Dedicated','Play 100 ranked matches','matches',100],
+ ['Matches','matches_250','🛡️','Battle Tested','Play 250 ranked matches','matches',250],
+ ['Matches','matches_500','🌟','Iron Paddle','Play 500 ranked matches','matches',500],
+ ['Streaks','streak_3','🔥','Heating Up','Reach a 3-win streak','streak',3],
+ ['Streaks','streak_5','🔥','On Fire','Reach a 5-win streak','streak',5],
+ ['Streaks','streak_10','☄️','Unstoppable','Reach a 10-win streak','streak',10],
+ ['Streaks','streak_25','🌋','Untouchable','Reach a 25-win streak','streak',25],
+ ['Ranks','rank_rally','🟢','Reached Rally','Reach Rally rank','elo',800],
+ ['Ranks','rank_challenger','🔵','Reached Challenger','Reach Challenger rank','elo',1000],
+ ['Ranks','rank_elite','🟣','Reached Elite','Reach Elite rank','elo',1200],
+ ['Ranks','rank_master','💎','Reached Master','Reach Master rank','elo',1400],
+ ['Ranks','rank_champion','👑','Reached Champion','Reach Champion rank','elo',1600],
+ ['Ranks','rank_legend','🌟','Reached Legend','Reach Legend rank','elo',1800],
+ ['Ranks','rank_unreal','🌌','Reached Unreal','Reach Unreal rank','elo',2000],
+ ['Tournaments','tourney_1','🥇','Tournament Champion','Win a tournament','tourney',1],
+ ['Tournaments','tourney_5','🏆','Tournament Ace','Win 5 tournaments','tourney',5],
+ ['Tournaments','tourney_10','👑','Tournament Legend','Win 10 tournaments','tourney',10]
+];
+function achievementMarkup(p,highestStreak,tWins,unlocks){
+ const unlocked=new Set((unlocks||[]).map(x=>x.achievement_key));
+ const values={wins:+p.wins||0,matches:(+p.wins||0)+(+p.losses||0),streak:+highestStreak||0,elo:+p.elo||0,tourney:+tWins||0};
+ // Tournament cabinet is currently stored by the app; count it as unlocked when visible.
+ for(const a of ACHIEVEMENTS)if(a[5]==='tourney'&&values.tourney>=a[6])unlocked.add(a[1]);
+ const count=ACHIEVEMENTS.filter(a=>unlocked.has(a[1])).length;
+ let s=`<div class="card"><div class="achievementSummary"><div class="achievementCount">🏆 ${count}/${ACHIEVEMENTS.length}</div><div><b>Achievements</b><div class="sub">Permanent milestones • keep them after your stats change</div></div></div>`;
+ for(const cat of ['Wins','Matches','Streaks','Ranks','Tournaments']){
+   const arr=ACHIEVEMENTS.filter(a=>a[0]===cat);s+=`<div class="achievementCategory">${cat}</div><div class="achievementGrid">`;
+   s+=arr.map(a=>{const done=unlocked.has(a[1]),v=Math.max(0,values[a[5]]||0),pctv=Math.min(100,Math.round(v/a[6]*100));return `<div class="achievementCard ${done?'unlocked':''}"><div class="achievementIcon">${done?a[2]:'🔒'}</div><h4>${escapeHtml(a[3])}</h4><div class="sub">${escapeHtml(a[4])}</div><div class="achievementProgress"><i style="width:${done?100:pctv}%"></i></div><div class="achievementDone">${done?'✓ UNLOCKED':`${Math.min(v,a[6])} / ${a[6]}`}</div></div>`}).join('');s+='</div>';
+ }
+ return s+'</div>';
+}
 async function showPlayerProfile(userId){
   if(!currentLeague)return;
-  const [pr,hr,chr,followInfo,hsr]=await Promise.all([
+  const [pr,hr,chr,followInfo,hsr,achr]=await Promise.all([
     sb.rpc('get_player_profile',{p_league_id:currentLeague.id,p_user_id:userId}),
     sb.rpc('get_player_match_history',{p_league_id:currentLeague.id,p_user_id:userId}),
     sb.rpc('get_player_casual_history',{p_league_id:currentLeague.id,p_user_id:userId}),
     getFollowInfo(userId),
-    sb.rpc('get_player_highest_streak',{p_user_id:userId})
+    sb.rpc('get_player_highest_streak',{p_user_id:userId}),
+    sb.rpc('sync_player_achievements',{p_user_id:userId})
   ]);
   if(pr.error)return toast(pr.error.message);
   if(hr.error)return toast(hr.error.message);
@@ -889,6 +934,7 @@ async function showPlayerProfile(userId){
         <div class="profileMetric"><small>Tourney Wins</small><b>🏆 ${tWins}</b></div>
       </div>
     </div>
+    ${achievementMarkup(p,highestStreak,tWins,achr.data||[])}
     <div class="card"><div class="cardHead"><b>📈 ELO History</b><span class="pill">${hist.length} MATCHES</span></div><div class="eloChartWrap">${eloChartSvg(eloSeries)}<div class="sub">Current ${p.elo} • Peak ${peak}</div></div></div>
     <div class="card"><div class="cardHead"><b>Match Styles</b><span class="pill">${favorite&&favorite.w+favorite.l?`${favorite.tag} MOST PLAYED`:'STATS'}</span></div>
       ${styles.map(s=>`<div class="row"><div class="avatar">${s.tag}</div><div class="grow"><div class="name">${s.name}</div><div class="sub">${s.w+s.l} played • ${pct(s.w,s.l)}% win rate</div></div><b>${s.w}-${s.l}</b></div>`).join('')}

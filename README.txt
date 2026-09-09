@@ -18,3 +18,9 @@ NEW
 - No manual re-entry of old matches
 
 The required Supabase database update has already been applied.
+
+ACHIEVEMENTS V1
+- Player profiles now include achievement badges and progress.
+- Win milestones: 1, 10, 25, 50, 100, 250, 500, 1000.
+- Match, streak, rank, and tournament milestones included.
+- Database-backed ranked achievement unlocks are permanent.
