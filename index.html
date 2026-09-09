@@ -294,6 +294,9 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 
   <div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div>
 
+  <div class="accountSectionTitle">Achievements</div>
+  <div id="accountAchievements"><div class="card"><div class="empty">Loading achievements…</div></div></div>
+
   <div class="accountSectionTitle">Settings</div>
   <div class="card">
     <div class="settingsGroupLabel">Phone Notifications</div>
@@ -1114,6 +1117,19 @@ function renderAccountHub(){
   const p=myGlobalStats,el=$('accountHeroRank');
   if(el&&p){el.innerHTML=`${rankImg(p.elo,'sm')}<div><b>${rankFor(p.elo)[0]} • ${p.elo} ELO</b><div class="sub">${p.wins}-${p.losses} global record</div></div>`}
 }
+async function renderAccountAchievements(){
+  const el=$('accountAchievements');
+  if(!el||!session?.user?.id||!myGlobalStats)return;
+  el.innerHTML='<div class="card"><div class="empty">Loading achievements…</div></div>';
+  const [hsr,achr]=await Promise.all([
+    sb.rpc('get_player_highest_streak',{p_user_id:session.user.id}),
+    sb.rpc('sync_player_achievements',{p_user_id:session.user.id})
+  ]);
+  const currentStreak=currentWinStreak(myGlobalStats.streak);
+  const highestStreak=Math.max(currentStreak,Number(hsr.data)||0);
+  const tWins=playerTournamentWins(session.user.id);
+  el.innerHTML=achievementMarkup(myGlobalStats,highestStreak,tWins,achr.data||[]);
+}
 async function saveDisplayName(){const name=$('accountName').value.trim();if(!name)return;const {error}=await sb.from('profiles').update({display_name:name}).eq('id',session.user.id);if(error)return toast(moderationErrorMessage(error));const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).single();profile=p||profile;$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;renderAccountHub();await Promise.all([loadCurrentLeague(),loadGlobalLeague()]);if(profile.display_name!==name)await checkModerationNotice();else toast('Name saved')}
 function renderRankList(){const myElo=myGlobalStats?.elo??800;const d=rankProgressData(myElo);$('rankList').innerHTML=`<div class="rankCard"><div class="rankHero">${rankImg(myElo,'lg')}<div class="grow"><h2>${d.cur[0]}</h2><div class="sub">YOUR GLOBAL RANK • ${myElo} ELO</div>${progressMarkup(myElo)}</div></div></div><div class="rankGallery">${tiers.map((t,i)=>`<div class="rankTile ${i===d.i?'current':''}"><img src="${rankImages[i]}" alt="${t[0]} badge"><b class="${t[2]}">${t[0]}</b><small>${t[1]}+ ELO</small></div>`).join('')}</div>`}
 function pct(w,l){const n=w+l;return n?Math.round(w/n*100):0}function signed(n){return n>=0?'+'+n:String(n)}function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
@@ -1343,7 +1359,7 @@ function renderTournaments(){
 
   el.innerHTML=currentHtml+pastHtml;
 }
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();}if(id==='account'){renderAccountHub();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague')loadGlobalLeague();if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();}if(id==='account'){renderAccountHub();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
