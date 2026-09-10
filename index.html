@@ -144,6 +144,12 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 .liveViewerNote{font-size:9px;color:#8f98ad;line-height:1.45}
 
 .achievementGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}.achievementCard{background:#0b0f17;border:1px solid #282e40;border-radius:15px;padding:12px;min-height:118px}.achievementCard.unlocked{border-color:#7058d8;background:linear-gradient(145deg,#171329,#0b0f17)}.achievementIcon{font-size:26px}.achievementCard h4{margin:7px 0 3px;font-size:13px}.achievementCard .sub{font-size:10px}.achievementProgress{height:6px;background:#242a39;border-radius:999px;overflow:hidden;margin-top:9px}.achievementProgress i{display:block;height:100%;background:#8a70ff;border-radius:999px}.achievementDone{font-size:9px;font-weight:950;color:#b9a7ff;margin-top:8px;letter-spacing:.08em}.achievementSummary{display:flex;align-items:center;gap:12px}.achievementCount{font-size:28px;font-weight:950}.achievementCategory{margin-top:16px;font-size:11px;font-weight:950;color:#aab1c3;text-transform:uppercase;letter-spacing:.08em}
+
+/* Court Leaderboard Overlay */
+.courtLeaderOverlay{position:fixed;inset:0;z-index:85;background:#000b;padding:calc(16px + env(safe-area-inset-top)) 12px 90px;overflow:auto}
+.courtLeaderShell{width:min(620px,100%);margin:0 auto;background:#0d111a;border:1px solid #303748;border-radius:20px;overflow:hidden;box-shadow:0 30px 90px #000b}
+.courtLeaderTop{position:sticky;top:0;z-index:2;background:#0d111af2;backdrop-filter:blur(10px);padding:14px;border-bottom:1px solid #262d3d;display:flex;align-items:center;gap:10px}
+.courtLeaderBody{padding:14px}
 </style>
 </head>
 <body>
@@ -174,6 +180,13 @@ window.OneSignalDeferred.push(async function(OneSignal) {
   <div class="viewerShell" onclick="event.stopPropagation()">
     <div class="viewerTop"><div class="liveDot"></div><div class="grow"><b id="viewerTournamentName" style="font-size:17px">Live Tournament</b><div id="viewerTournamentSub" class="sub"></div></div><button class="btn" onclick="closeTournamentViewer()">✕</button></div>
     <div id="viewerTournamentBody" class="viewerBody"></div>
+  </div>
+</div>
+
+<div id="courtLeaderOverlay" class="courtLeaderOverlay hiddenImportant" onclick="closeCourtLeaderboard(event)">
+  <div class="courtLeaderShell" onclick="event.stopPropagation()">
+    <div class="courtLeaderTop"><div class="grow"><b id="courtLeaderTitle" style="font-size:17px">🏆 Court Leaders</b><div class="sub">Ranked Paddle League matches at this court</div></div><button class="btn" onclick="closeCourtLeaderboard()">✕</button></div>
+    <div id="courtLeaderBody" class="courtLeaderBody"><div class="empty">Loading…</div></div>
   </div>
 </div>
 <main>
@@ -1131,11 +1144,21 @@ function courtKey(c){
 }
 async function openCourtLeaderboard(i){
   const c=nearbyCourts[i];if(!c)return;
+  $('courtLeaderTitle').textContent=`🏆 ${c.name}`;
+  $('courtLeaderBody').innerHTML='<div class="empty">Loading leaderboard…</div>';
+  $('courtLeaderOverlay').classList.remove('hiddenImportant');
   const {data,error}=await sb.rpc('get_court_leaderboard',{p_court_key:courtKey(c)});
-  if(error)return toast(error.message);
+  if(error){
+    $('courtLeaderBody').innerHTML=`<div class="empty">Could not load this leaderboard.<br><span class="sub">${escapeHtml(error.message)}</span></div>`;
+    return;
+  }
   const rows=data||[];
-  const body=rows.length?rows.map((r,j)=>`<div class="row clickable" onclick="closeModal();openPlayerProfile('${r.user_id}')"><div class="ranknum">${j===0?'👑':j+1}</div><div class="grow"><div class="name">${escapeHtml(r.display_name)}</div><div class="sub">${r.court_wins}-${r.court_losses} at this court • ${r.matches_played} matches • best streak ${r.best_streak}</div></div><div style="text-align:right"><b>${r.elo}</b><div class="sub">ELO</div></div></div>`).join(''):'<div class="empty">No ranked Paddle League matches have been recorded at this court yet. Be the first 👑</div>';
-  openModal(`🏆 ${escapeHtml(c.name)}`,`<div class="communityNote" style="margin-bottom:10px">Court standings rank players by current global ELO, then court wins and matches played.</div>${body}`);
+  const body=rows.length?rows.map((r,j)=>`<div class="row clickable" onclick="closeCourtLeaderboard();openPlayerProfile('${r.user_id}')"><div class="ranknum">${j===0?'👑':j+1}</div><div class="grow"><div class="name">${escapeHtml(r.display_name)}</div><div class="sub">${r.court_wins}-${r.court_losses} at this court • ${r.matches_played} matches • best streak ${r.best_streak}</div></div><div style="text-align:right"><b>${r.elo}</b><div class="sub">ELO</div></div></div>`).join(''):'<div class="empty">No ranked Paddle League matches have been recorded at this court yet.<br><br>Be the first 👑</div>';
+  $('courtLeaderBody').innerHTML=`<div class="communityNote" style="margin-bottom:10px">Court standings rank players by current global ELO, then court wins and matches played.</div>${body}`;
+}
+function closeCourtLeaderboard(e){
+  if(e&&e.target!==$('courtLeaderOverlay'))return;
+  $('courtLeaderOverlay').classList.add('hiddenImportant');
 }
 function selectCourtByIndex(i){
   const c=nearbyCourts[i];if(!c)return;
