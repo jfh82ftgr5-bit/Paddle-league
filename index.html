@@ -851,7 +851,10 @@ async function submitVerifiedScore(){
 }
 async function confirmVerifiedScore(ok){
   const {data,error}=await sb.rpc(playMode==='ranked'?'confirm_match_score':'confirm_casual_match_score',{p_code:activeMatchCode,p_confirm:ok});if(error)return toast(error.message);
-  await refreshVerifiedMatch();await loadCurrentLeague();toast(data==='official'?(playMode==='ranked'?'Match confirmed — ELO updated':'Casual match confirmed — no ELO change'):'Match disputed — no ELO change');
+  if(data==='official'&&playMode==='ranked'&&selectedCourt){
+    await sb.rpc('attach_latest_official_match_court',{p_code:activeMatchCode,p_court_key:courtKey(selectedCourt),p_court_name:selectedCourt.name||'Court'});
+  }
+  await refreshVerifiedMatch();await loadCurrentLeague();toast(data==='official'?(playMode==='ranked'?'Match confirmed — ELO updated'+(selectedCourt?' • court leaderboard updated':''):'Casual match confirmed — no ELO change'):'Match disputed — no ELO change');
 }
 function closeActiveMatch(){activeMatchCode=null;activeMatch=null;renderVerifiedLobby()}
 
@@ -1101,6 +1104,7 @@ function renderCourts(){
         ${c.access?`<div class="accessNote">${escapeHtml(c.access)}</div>`:''}
         <div class="courtActions">
           <button class="btn" onclick="event.stopPropagation();openDirections(${i})">Directions</button>
+          <button class="btn" onclick="event.stopPropagation();openCourtLeaderboard(${i})">🏆 Leaders</button>
           <button class="btn primary" onclick="event.stopPropagation();selectCourtByIndex(${i})">Start Match</button>
         </div>
       </div>
@@ -1118,6 +1122,20 @@ function openDirections(i){
   const c=nearbyCourts[i];if(!c)return;
   const destination=(c.lat!=null&&c.lng!=null)?`${c.lat},${c.lng}`:c.address||c.name;
   window.open(`https://maps.apple.com/?daddr=${encodeURIComponent(destination)}&q=${encodeURIComponent(c.name)}`,'_blank')
+}
+function courtKey(c){
+  if(!c)return null;
+  if(c.id)return String(c.id);
+  if(c.lat!=null&&c.lng!=null)return `court-${Number(c.lat).toFixed(5)}-${Number(c.lng).toFixed(5)}`;
+  return `court-${String(c.name||'unknown').toLowerCase().replace(/[^a-z0-9]+/g,'-')}`;
+}
+async function openCourtLeaderboard(i){
+  const c=nearbyCourts[i];if(!c)return;
+  const {data,error}=await sb.rpc('get_court_leaderboard',{p_court_key:courtKey(c)});
+  if(error)return toast(error.message);
+  const rows=data||[];
+  const body=rows.length?rows.map((r,j)=>`<div class="row clickable" onclick="closeModal();openPlayerProfile('${r.user_id}')"><div class="ranknum">${j===0?'👑':j+1}</div><div class="grow"><div class="name">${escapeHtml(r.display_name)}</div><div class="sub">${r.court_wins}-${r.court_losses} at this court • ${r.matches_played} matches • best streak ${r.best_streak}</div></div><div style="text-align:right"><b>${r.elo}</b><div class="sub">ELO</div></div></div>`).join(''):'<div class="empty">No ranked Paddle League matches have been recorded at this court yet. Be the first 👑</div>';
+  openModal(`🏆 ${escapeHtml(c.name)}`,`<div class="communityNote" style="margin-bottom:10px">Court standings rank players by current global ELO, then court wins and matches played.</div>${body}`);
 }
 function selectCourtByIndex(i){
   const c=nearbyCourts[i];if(!c)return;
