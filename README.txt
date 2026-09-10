@@ -1,3 +1,9 @@
+PADDLE LEAGUE — SEASONS V1
+
+Replace the same 5 files in GitHub main.
+
+Season 1: 8 weeks, separate Season Points, +10 win, +2 loss, up to +8 upset bonus, reduced repeat-opponent SP, 10 matches to qualify. Career ELO/ranks/achievements never reset.
+
 PADDLE LEAGUE — RIVALS + HEAD-TO-HEAD UPDATE
 
 Replace the same 5 files in the GitHub repo and commit to main:
