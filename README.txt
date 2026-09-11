@@ -1,12 +1,21 @@
-Paddle League — Court Leaderboards V1
+PADDLE LEAGUE — LOOKING TO PLAY V1
 
-Replace the same 5 files in GitHub and commit to main. Vercel will deploy automatically.
+Upload/replace these same 5 files in the GitHub repo root:
+1. index.html
+2. manifest.webmanifest
+3. sw.js
+4. vercel.json
+5. README.txt
 
-NEW:
-- Court leaderboard button on mapped court cards
-- Ranked matches started with a selected court are attached to that court after score confirmation
-- Court leaderboard shows current global ELO, court W-L, matches played, and best court win streak
-- #1 player gets the Court King crown
-- Existing Seasons, Achievements, Rivals, Court Finder, dynamic ELO, tournaments, notifications, clubs and profiles remain included
+This build keeps Seasons, Achievements, Rivals/Head-to-Head, U.S. Court Finder, Court Leaderboards V1.1, tournaments, clubs, notifications, dynamic ELO and the rest of the current app.
 
-No manual SQL is required; the database migration has already been applied.
+NEW: Looking to Play
+- Post Singles or Doubles
+- Ranked or Casual
+- Choose/type a public court
+- Pick a future date/time
+- Visible through connected club/follow network
+- Other players tap “I'm In”
+- Creator accepts or declines
+- Accepted match becomes Matched and sends a notification
+- No live GPS is shared
