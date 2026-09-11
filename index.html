@@ -152,6 +152,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 .courtLeaderBody{padding:14px}
 
 .advancedStatsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.advancedStat{background:#11131c;border:1px solid #292d3b;border-radius:14px;padding:12px}.advancedStat small{display:block;color:#8f96aa;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}.advancedStat b{font-size:18px}.formRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.formDot{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:950;background:#171b25;border:1px solid #303545}.formDot.w{color:#63e6a7}.formDot.l{color:#ff7d91}.advancedNote{font-size:10px;color:#7e869a;margin-top:10px;line-height:1.45}
+.milestoneOverlay{position:fixed;inset:0;z-index:9999;background:rgba(5,6,10,.84);display:grid;place-items:center;padding:22px}.milestoneOverlay.hiddenImportant{display:none!important}.milestoneCard{width:min(390px,100%);background:linear-gradient(180deg,#211946,#11131c);border:1px solid #725cff;border-radius:24px;padding:26px;text-align:center;box-shadow:0 24px 80px #000}.milestoneIcon{font-size:54px}.milestoneCard h2{margin:8px 0 6px;font-size:25px}.milestoneCard p{color:#b9bed0;line-height:1.5}.milestoneTag{display:inline-block;margin-top:4px;padding:6px 10px;border-radius:999px;background:#725cff22;border:1px solid #725cff;color:#c9c1ff;font-size:11px;font-weight:900;letter-spacing:.5px}
 </style>
 </head>
 <body>
@@ -366,6 +367,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 <nav class="bottom"><button class="on" data-page="home"><span>🏠</span>Home</button><button data-page="globalLeague"><span>🌎</span>League</button><button data-page="leagues"><span>🎾</span>Clubs</button><button data-page="courts"><span>📍</span>Courts</button><button data-page="matches"><span>🎾</span>Matches</button><button data-page="account"><span>👤</span>Account</button></nav>
 </div>
 <div id="toast" class="toast"></div>
+<div id="milestoneOverlay" class="milestoneOverlay hiddenImportant"><div class="milestoneCard"><div id="milestoneIcon" class="milestoneIcon">🏆</div><div class="milestoneTag">MILESTONE UNLOCKED</div><h2 id="milestoneTitle">Moving Up!</h2><p id="milestoneBody"></p><button class="btn primary full" onclick="closeMilestone()">Let’s go 🔥</button></div></div>
 <div id="moderationOverlay" class="modOverlay hiddenImportant"><div class="modModal"><div class="modShield">🛡️</div><h2 id="moderationTitle">Community rules update</h2><p id="moderationMessage"></p><button class="btn primary full" onclick="closeModerationNotice()">Got it</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -379,7 +381,7 @@ const rankImages=['data:image/webp;base64,UklGRr4bAABXRUJQVlA4ILIbAADQYQCdASrEAN
 let authMode='signin',session=null,profile=null,myLeagues=[],currentLeague=null,members=[],matches=[],matchMode='1s',verifiedMode='1s',activeMatchCode=null,activeMatch=null,onlinePlayers=[],presenceTimer=null,courtsMap=null,courtMarkers=[],nearbyCourts=[],userCoords=null,selectedCourt=null,courtSearchRadius=12000,courtFilter='all',courtSearchLabel='',socialPosts=[],playMode="ranked",casualMatches=[],globalLeaderboard=[],myGlobalStats=null,tournamentCache=[],moderationNoticeId=null,clubRoles={},notifications=[],notificationSettings=null,notificationTimer=null,activeSeason=null,seasonLeaderboard=[],playPostType="1s",playPosts=[];
 const $=id=>document.getElementById(id);
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('on');setTimeout(()=>$('toast').classList.remove('on'),2600)}
-function notificationIcon(type){return ({follow:'👥',match_ready:'🎾',match_confirmation:'✅',tournament_started:'🏆',tournament_complete:'🏆',tournament_match:'🏆',club_admin:'🛠️',club_owner:'👑',club_announcement:'📣',rank_up:'📈',moderation:'🛡️'})[type]||'🔔'}
+function notificationIcon(type){return ({milestone:'🏆',follow:'👥',match_ready:'🎾',match_confirmation:'✅',tournament_started:'🏆',tournament_complete:'🏆',tournament_match:'🏆',club_admin:'🛠️',club_owner:'👑',club_announcement:'📣',rank_up:'📈',moderation:'🛡️'})[type]||'🔔'}
 async function loadNotifications(silent=true){
   if(!session)return;
   const {data,error}=await sb.from('notifications').select('id,type,title,body,league_id,entity_id,is_read,created_at').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(60);
@@ -541,12 +543,44 @@ function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class=
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
 async function boot(s){session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice()}
+let milestoneQueue=[];
+function milestoneSnapshotKey(){return session?`pl_milestone_snapshot_${session.user.id}`:''}
+function showMilestone(m){
+ if(!m)return; $('milestoneIcon').textContent=m.icon||'🏆';$('milestoneTitle').textContent=m.title;$('milestoneBody').textContent=m.body;$('milestoneOverlay').classList.remove('hiddenImportant');
+}
+function closeMilestone(){ $('milestoneOverlay').classList.add('hiddenImportant'); if(milestoneQueue.length)showMilestone(milestoneQueue.shift()) }
+async function claimMilestone(key,type,title,body,meta={},icon='🏆'){
+ const {data,error}=await sb.rpc('claim_player_milestone',{p_key:key,p_type:type,p_title:title,p_body:body,p_meta:meta});
+ if(error){console.warn('milestone',error);return} if(data?.id){const m={title,body,icon};if($('milestoneOverlay').classList.contains('hiddenImportant'))showMilestone(m);else milestoneQueue.push(m);await loadNotifications(true)}
+}
+async function evaluateGlobalMilestones(){
+ if(!session||!myGlobalStats||!globalLeaderboard.length)return;
+ const pos=globalLeaderboard.findIndex(x=>x.user_id===session.user.id)+1, elo=Number(myGlobalStats.elo||0), rank=rankFor(elo)[0], peak=Number(myGlobalStats.peak_elo||elo);
+ const key=milestoneSnapshotKey(), old=JSON.parse(localStorage.getItem(key)||'null');
+ const snap={pos,elo,rank,peak}; localStorage.setItem(key,JSON.stringify(snap)); if(!old)return;
+ if(old.pos>10&&pos>0&&pos<=10)await claimMilestone('global-top10','leaderboard','🚀 Top 10!','You just entered the Global Top 10.',{position:pos},'🚀');
+ if(old.pos>3&&pos>0&&pos<=3)await claimMilestone('global-top3','leaderboard','🥉 Global Top 3!','You just broke into the Global Top 3.',{position:pos},'🥉');
+ if(old.pos!==1&&pos===1)await claimMilestone('global-number1','leaderboard','👑 New Global #1!','You took the #1 spot on the Paddle League global leaderboard.',{position:1},'👑');
+ if(rank!==old.rank&&rankIndex(elo)>rankIndex(Number(old.elo||0)))await claimMilestone(`rank-${rank.toLowerCase()}`,'rank','📈 Rank Up!',`You reached ${rank} at ${elo} ELO.`,{rank,elo},'📈');
+ if(peak>Number(old.peak||0)&&peak>Number(old.elo||0))await claimMilestone(`peak-${peak}`,'peak','🔥 New Peak ELO!',`New career high: ${peak} ELO.`,{peak},'🔥');
+}
+async function evaluateSeasonMilestones(){
+ if(!session||!activeSeason||!seasonLeaderboard.length)return;
+ const pos=seasonLeaderboard.findIndex(x=>x.user_id===session.user.id)+1;if(!pos)return;
+ const k=`pl_season_pos_${session.user.id}_${activeSeason.id}`,old=Number(localStorage.getItem(k)||0);localStorage.setItem(k,String(pos));if(!old)return;
+ if(old>10&&pos<=10)await claimMilestone(`season-${activeSeason.id}-top10`,'season','🚀 Season Top 10!',`You climbed to #${pos} in ${activeSeason.name}.`,{position:pos,season_id:activeSeason.id},'🚀');
+ if(old>3&&pos<=3)await claimMilestone(`season-${activeSeason.id}-top3`,'season','🏆 Season Top 3!',`You climbed to #${pos} in ${activeSeason.name}.`,{position:pos,season_id:activeSeason.id},'🏆');
+ if(old!==1&&pos===1)await claimMilestone(`season-${activeSeason.id}-number1`,'season','👑 Season Leader!',`You took #1 in ${activeSeason.name}.`,{position:1,season_id:activeSeason.id},'👑');
+}
+async function evaluateCourtKing(c){
+ if(!session||!c)return;const {data}=await sb.rpc('get_court_leaderboard',{p_court_key:courtKey(c)});const rows=data||[];if(rows[0]?.user_id===session.user.id)await claimMilestone(`court-king-${courtKey(c)}`,'court','👑 New Court King!',`You took the #1 spot at ${c.name||'this court'}.`,{court_key:courtKey(c),court_name:c.name||'Court'},'👑');
+}
 async function loadGlobalLeague(){
   if(!session)return;
   const [lb,me]=await Promise.all([sb.rpc('get_global_leaderboard'),sb.rpc('get_my_global_stats')]);
   if(lb.error){console.warn(lb.error);return}
   globalLeaderboard=lb.data||[];myGlobalStats=(me.data||[])[0]||globalLeaderboard.find(x=>x.user_id===session.user.id)||null;
-  renderGlobalLeague();renderRankList();renderHomeGlobalRank();renderAccountHub();loadSeason();
+  renderGlobalLeague();renderRankList();renderHomeGlobalRank();renderAccountHub();await evaluateGlobalMilestones();loadSeason();
 }
 function renderHomeGlobalRank(){
   const el=$('homeGlobalRank');if(!el)return;const p=myGlobalStats;if(!p){el.innerHTML='';return}
@@ -592,7 +626,7 @@ async function loadSeason(){
   activeSeason=seasons[0];
   await sb.rpc('refresh_season_points',{p_season_id:activeSeason.id});
   const {data,error:lbErr}=await sb.rpc('get_season_leaderboard',{p_season_id:activeSeason.id});
-  seasonLeaderboard=lbErr?[]:(data||[]);renderSeason();
+  seasonLeaderboard=lbErr?[]:(data||[]);renderSeason();await evaluateSeasonMilestones();
 }
 function toggleSeasonBoard(){const w=$('seasonLeaderboardWrap');if(w)w.classList.toggle('hidden')}
 function renderSeason(){
@@ -883,7 +917,7 @@ async function submitVerifiedScore(){
 async function confirmVerifiedScore(ok){
   const {data,error}=await sb.rpc(playMode==='ranked'?'confirm_match_score':'confirm_casual_match_score',{p_code:activeMatchCode,p_confirm:ok});if(error)return toast(error.message);
   if(data==='official'&&playMode==='ranked'&&selectedCourt){
-    await sb.rpc('attach_latest_official_match_court',{p_code:activeMatchCode,p_court_key:courtKey(selectedCourt),p_court_name:selectedCourt.name||'Court'});
+    await sb.rpc('attach_latest_official_match_court',{p_code:activeMatchCode,p_court_key:courtKey(selectedCourt),p_court_name:selectedCourt.name||'Court'});await evaluateCourtKing(selectedCourt);
   }
   await refreshVerifiedMatch();await loadCurrentLeague();toast(data==='official'?(playMode==='ranked'?'Match confirmed — ELO updated'+(selectedCourt?' • court leaderboard updated':''):'Casual match confirmed — no ELO change'):'Match disputed — no ELO change');
 }
