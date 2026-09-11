@@ -330,6 +330,9 @@ window.OneSignalDeferred.push(async function(OneSignal) {
   <div class="accountSectionTitle">Achievements</div>
   <div id="accountAchievements"><div class="card"><div class="empty">Loading achievements…</div></div></div>
 
+  <div class="accountSectionTitle">Milestone Testing</div>
+  <div class="card" style="padding:16px"><div class="cardHead"><div><b>🏆 Celebration Preview</b><div class="sub">Preview the milestone animation without changing ELO, rank, records, or notifications.</div></div></div><button class="btn primary full" onclick="testMilestoneCelebration()">Test Celebration 🏆</button></div>
+
   <div class="accountSectionTitle">Settings</div>
   <div class="card">
     <div class="settingsGroupLabel">Phone Notifications</div>
@@ -549,6 +552,9 @@ function showMilestone(m){
  if(!m)return; $('milestoneIcon').textContent=m.icon||'🏆';$('milestoneTitle').textContent=m.title;$('milestoneBody').textContent=m.body;$('milestoneOverlay').classList.remove('hiddenImportant');
 }
 function closeMilestone(){ $('milestoneOverlay').classList.add('hiddenImportant'); if(milestoneQueue.length)showMilestone(milestoneQueue.shift()) }
+function testMilestoneCelebration(){
+ showMilestone({icon:'👑',title:'Test Celebration!',body:'This is what a Paddle League milestone celebration will look like. No stats were changed.'});
+}
 async function claimMilestone(key,type,title,body,meta={},icon='🏆'){
  const {data,error}=await sb.rpc('claim_player_milestone',{p_key:key,p_type:type,p_title:title,p_body:body,p_meta:meta});
  if(error){console.warn('milestone',error);return} if(data?.id){const m={title,body,icon};if($('milestoneOverlay').classList.contains('hiddenImportant'))showMilestone(m);else milestoneQueue.push(m);await loadNotifications(true)}
