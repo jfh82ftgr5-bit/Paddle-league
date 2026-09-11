@@ -19,3 +19,5 @@ NEW: Looking to Play
 - Creator accepts or declines
 - Accepted match becomes Matched and sends a notification
 - No live GPS is shared
+
+V1.1: Added Cancel Match / Leave Match for matched Looking to Play plans. Cancelling/Leaving reopens the creator's post, clears the accepted player, and notifies the other player. Also fixed Court Leaderboard player taps.
