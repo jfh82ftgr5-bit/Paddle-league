@@ -278,12 +278,12 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 </div>
 
 <div class="card" id="gameNightCard">
-  <div class="cardHead"><div><b>🎲 Game Night</b><div class="sub">Fair rotations, automatic rests, live standings. No ELO changes.</div></div><button class="btn primary" onclick="openGameNightCreator()">＋ Create</button></div>
+  <div class="cardHead"><div><b>🎲 Game Night</b><div class="sub">Fair rotations, automatic rests, live standings. No ELO changes.</div></div><button class="btn primary" id="gameNightTopBtn" onclick="gameNightTopAction()">＋ Create</button></div>
   <div id="gameNightCreator" class="hidden" style="padding:0 14px 14px">
     <div class="field"><label>Name</label><input id="gameNightName" maxlength="32" value="Game Night"></div>
     <div class="field"><label>Format</label><select id="gameNightFormat"><option value="doubles">🔀 Rotating Partners</option><option value="singles">🎾 Singles Rotation</option></select></div>
     <div class="field"><label>Courts</label><select id="gameNightCourts"><option value="1">1 Court</option><option value="2">2 Courts</option><option value="3">3 Courts</option></select></div>
-    <div class="field"><label>Players (4–12)</label><div id="gameNightPlayerPicker"></div></div>
+    <div class="field"><label>Players (4–12) <span id="gameNightSelectedCount" class="sub">• 1 selected</span></label><div id="gameNightPlayerPicker"></div></div>
     <div class="actions"><button class="btn" onclick="closeGameNightCreator()">Cancel</button><button class="btn primary" onclick="createGameNight()">Start Game Night</button></div>
   </div>
   <div id="gameNightLive"><div class="empty">Create a Game Night and Paddle League will organize the rotations.</div></div>
@@ -1536,8 +1536,10 @@ async function reopenMatchedPlayPost(id,mode){const text=mode==='leave'?'Leave t
 
 
 let activeGameNight=null,gameNightGames=[],gameNightPlayers=[];
-function openGameNightCreator(){if(!currentLeague)return toast('Choose a club first');$('gameNightCreator').classList.remove('hidden');$('gameNightPlayerPicker').innerHTML=members.map(m=>`<label class="row clickable"><input type="checkbox" class="gnPlayer" value="${m.user_id}" ${m.user_id===session.user.id?'checked':''}><div class="grow"><b>${escapeHtml(m.display_name)}</b><div class="sub">${m.elo} ELO</div></div></label>`).join('')}
-function closeGameNightCreator(){$('gameNightCreator')?.classList.add('hidden')}
+function openGameNightCreator(){if(!currentLeague)return toast('Choose a club first');$('gameNightCreator').classList.remove('hidden');$('gameNightTopBtn').textContent='▶ Start';$('gameNightPlayerPicker').innerHTML=members.map(m=>`<label class="row clickable"><input type="checkbox" class="gnPlayer" value="${m.user_id}" ${m.user_id===session.user.id?'checked':''} onchange="updateGnSelectedCount()"><div class="grow"><b>${escapeHtml(m.display_name)}</b><div class="sub">${m.elo} ELO</div></div></label>`).join('');updateGnSelectedCount()}
+function closeGameNightCreator(){$('gameNightCreator')?.classList.add('hidden');if($('gameNightTopBtn'))$('gameNightTopBtn').textContent='＋ Create'}
+function gameNightTopAction(){if($('gameNightCreator')?.classList.contains('hidden'))openGameNightCreator();else createGameNight()}
+function updateGnSelectedCount(){const n=gnSelected().length;if($('gameNightSelectedCount'))$('gameNightSelectedCount').textContent=`• ${n} selected`}
 function gnSelected(){return [...document.querySelectorAll('.gnPlayer:checked')].map(x=>x.value)}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function makeGameNightSchedule(ids,format,courts){const n=ids.length,rounds=[];let ring=[...ids];const maxRounds=Math.min(11,format==='singles'?Math.max(3,n-1):Math.max(4,n));for(let r=0;r<maxRounds;r++){let order=[...ring];let games=[];if(format==='singles'){for(let c=0;c<courts&&order.length>=2;c++)games.push({round_no:r+1,court_no:c+1,team1_ids:[order.shift()],team2_ids:[order.shift()]})}else{for(let c=0;c<courts&&order.length>=4;c++)games.push({round_no:r+1,court_no:c+1,team1_ids:[order.shift(),order.shift()],team2_ids:[order.shift(),order.shift()]})}if(games.length)rounds.push(...games);ring=[ring[0],ring[ring.length-1],...ring.slice(1,-1)]}return rounds}
