@@ -150,6 +150,8 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 .courtLeaderShell{width:min(620px,100%);margin:0 auto;background:#0d111a;border:1px solid #303748;border-radius:20px;overflow:hidden;box-shadow:0 30px 90px #000b}
 .courtLeaderTop{position:sticky;top:0;z-index:2;background:#0d111af2;backdrop-filter:blur(10px);padding:14px;border-bottom:1px solid #262d3d;display:flex;align-items:center;gap:10px}
 .courtLeaderBody{padding:14px}
+
+.advancedStatsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.advancedStat{background:#11131c;border:1px solid #292d3b;border-radius:14px;padding:12px}.advancedStat small{display:block;color:#8f96aa;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}.advancedStat b{font-size:18px}.formRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.formDot{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:950;background:#171b25;border:1px solid #303545}.formDot.w{color:#63e6a7}.formDot.l{color:#ff7d91}.advancedNote{font-size:10px;color:#7e869a;margin-top:10px;line-height:1.45}
 </style>
 </head>
 <body>
@@ -320,6 +322,9 @@ window.OneSignalDeferred.push(async function(OneSignal) {
   <div class="card"><div class="cardHead"><b>👥 Following</b><span id="followingCount" class="pill">0</span></div><div id="followingList"><div class="empty">You aren’t following anyone yet.</div></div></div>
 
   <div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div>
+
+  <div class="accountSectionTitle">Advanced Stats</div>
+  <div id="accountAdvancedStats"><div class="card"><div class="empty">Loading advanced stats…</div></div></div>
 
   <div class="accountSectionTitle">Achievements</div>
   <div id="accountAchievements"><div class="card"><div class="empty">Loading achievements…</div></div></div>
@@ -949,6 +954,36 @@ function achievementMarkup(p,highestStreak,tWins,unlocks){
  }
  return s+'</div>';
 }
+function advancedStatsMarkup(hist,p){
+ const h=[...(hist||[])].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ const wins=h.filter(m=>m.result==='W'),losses=h.filter(m=>m.result==='L');
+ const last10=h.slice(0,10),l10w=last10.filter(m=>m.result==='W').length,l10l=last10.length-l10w;
+ const gained=wins.reduce((a,m)=>a+(+m.elo_change||0),0),lost=losses.reduce((a,m)=>a+(+m.elo_change||0),0),net=gained-lost;
+ const biggest=wins.length?Math.max(...wins.map(m=>+m.elo_change||0)):0;
+ const winMargins=wins.map(m=>Math.abs((+m.score1||0)-(+m.score2||0))),avgMargin=winMargins.length?(winMargins.reduce((a,b)=>a+b,0)/winMargins.length).toFixed(1):'0.0';
+ const biggestMargin=winMargins.length?Math.max(...winMargins):0;
+ const recent=last10.slice(0,5);
+ return `<div class="card"><div class="cardHead"><b>📊 Advanced Stats</b><span class="pill">RANKED</span></div>
+ <div class="advancedStatsGrid">
+  <div class="advancedStat"><small>Win Rate</small><b>${pct(wins.length,losses.length)}%</b></div>
+  <div class="advancedStat"><small>Last 10</small><b>${l10w}-${l10l}</b></div>
+  <div class="advancedStat"><small>ELO Gained</small><b class="win">+${gained}</b></div>
+  <div class="advancedStat"><small>ELO Lost</small><b class="loss">-${lost}</b></div>
+  <div class="advancedStat"><small>Net ELO</small><b>${signed(net)}</b></div>
+  <div class="advancedStat"><small>Biggest ELO Win</small><b class="win">+${biggest}</b></div>
+  <div class="advancedStat"><small>Avg Win Margin</small><b>${avgMargin} pts</b></div>
+  <div class="advancedStat"><small>Biggest Win Margin</small><b>${biggestMargin} pts</b></div>
+ </div>
+ <div class="formRow">${recent.length?recent.map(m=>`<span class="formDot ${m.result==='W'?'w':'l'}">${m.result}</span>`).join(''):'<span class="sub">No ranked matches yet.</span>'}</div>
+ <div class="advancedNote">Recent form shows the latest 5 verified ranked results. ELO totals are calculated from official match history.</div></div>`;
+}
+async function renderAccountAdvancedStats(){
+ const el=$('accountAdvancedStats');if(!el||!session?.user?.id||!currentLeague)return;
+ el.innerHTML='<div class="card"><div class="empty">Loading advanced stats…</div></div>';
+ const {data,error}=await sb.rpc('get_player_match_history',{p_league_id:currentLeague.id,p_user_id:session.user.id});
+ if(error){el.innerHTML=`<div class="card"><div class="empty">${escapeHtml(error.message)}</div></div>`;return}
+ el.innerHTML=advancedStatsMarkup(data||[],myGlobalStats||{});
+}
 async function showPlayerProfile(userId){
   if(!currentLeague)return;
   const [pr,hr,chr,followInfo,hsr,achr]=await Promise.all([
@@ -987,6 +1022,7 @@ async function showPlayerProfile(userId){
         <div class="profileMetric"><small>Tourney Wins</small><b>🏆 ${tWins}</b></div>
       </div>
     </div>
+    ${advancedStatsMarkup(hist,p)}
     ${achievementMarkup(p,highestStreak,tWins,achr.data||[])}
     <div class="card"><div class="cardHead"><b>📈 ELO History</b><span class="pill">${hist.length} MATCHES</span></div><div class="eloChartWrap">${eloChartSvg(eloSeries)}<div class="sub">Current ${p.elo} • Peak ${peak}</div></div></div>
     <div class="card"><div class="cardHead"><b>Match Styles</b><span class="pill">${favorite&&favorite.w+favorite.l?`${favorite.tag} MOST PLAYED`:'STATS'}</span></div>
@@ -1446,7 +1482,7 @@ async function declinePlayResponse(postId,userId){const {error}=await sb.from('p
 async function cancelPlayPost(id){if(!confirm('Cancel this Looking to Play post?'))return;const {error}=await sb.from('play_posts').update({status:'cancelled'}).eq('id',id).eq('creator_id',session.user.id);if(error)return toast(error.message);toast('Post cancelled');await loadPlayPosts()}
 async function reopenMatchedPlayPost(id,mode){const text=mode==='leave'?'Leave this planned match? The creator’s post will reopen.':'Cancel this planned match? Your post will reopen so someone else can join.';if(!confirm(text))return;const {error}=await sb.rpc('reopen_matched_play_post',{p_post_id:id});if(error)return toast(error.message);toast(mode==='leave'?'You left the match.':'Match cancelled — post reopened 🎾');await loadPlayPosts();await loadNotifications()}
 
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();}if(id==='account'){renderAccountHub();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
