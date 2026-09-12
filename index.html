@@ -153,6 +153,24 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 
 .advancedStatsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.advancedStat{background:#11131c;border:1px solid #292d3b;border-radius:14px;padding:12px}.advancedStat small{display:block;color:#8f96aa;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}.advancedStat b{font-size:18px}.formRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.formDot{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:950;background:#171b25;border:1px solid #303545}.formDot.w{color:#63e6a7}.formDot.l{color:#ff7d91}.advancedNote{font-size:10px;color:#7e869a;margin-top:10px;line-height:1.45}
 .milestoneOverlay{position:fixed;inset:0;z-index:9999;background:rgba(5,6,10,.84);display:grid;place-items:center;padding:22px}.milestoneOverlay.hiddenImportant{display:none!important}.milestoneCard{width:min(390px,100%);background:linear-gradient(180deg,#211946,#11131c);border:1px solid #725cff;border-radius:24px;padding:26px;text-align:center;box-shadow:0 24px 80px #000}.milestoneIcon{font-size:54px}.milestoneCard h2{margin:8px 0 6px;font-size:25px}.milestoneCard p{color:#b9bed0;line-height:1.5}.milestoneTag{display:inline-block;margin-top:4px;padding:6px 10px;border-radius:999px;background:#725cff22;border:1px solid #725cff;color:#c9c1ff;font-size:11px;font-weight:900;letter-spacing:.5px}
+
+/* Home Polish V1 */
+:root{--tap:#1a2030}
+button,.clickable,.profileLink{transition:transform .14s ease,opacity .14s ease,background-color .14s ease,border-color .14s ease}
+button:active,.clickable:active{transform:scale(.985);opacity:.9}
+.homeHero{padding:16px 18px}.homeHero h1{font-size:27px}.homeHero p{font-size:12px;line-height:1.42;margin:5px 0 9px}
+#homeGlobalRank{margin-bottom:11px}
+#home .stats{margin:9px 0;gap:7px}#home .stat{padding:10px 11px}#home .stat b{font-size:18px}
+.postComposer{padding:0;margin-top:11px;overflow:hidden}.postComposerTop{padding:12px 13px;align-items:center;cursor:pointer}.postComposerTop .activityAvatar{width:38px;height:38px;border-radius:12px}.composerPrompt{background:#0b0f17;border:1px solid #293044;border-radius:12px;padding:10px 12px;color:#8e95a8;font-size:11px;font-weight:750}.composerChevron{color:#7f8799;font-size:15px;margin-left:5px;transition:transform .18s ease}.postComposer.open .composerChevron{transform:rotate(180deg)}
+.postComposerBody{display:none;padding:0 13px 13px}.postComposer.open .postComposerBody{display:block;animation:homeFade .16s ease}.postComposer textarea{min-height:72px;margin:0}.postComposerActions{margin-top:8px}
+.feedTitle{margin-top:15px}.feedTitle h2{font-size:23px!important}.activityFeed{gap:9px;margin-top:10px}.activityCard{padding:13px!important;border-radius:17px!important}.activityScore{font-size:20px!important;margin-top:9px!important}.activityMeta{margin-top:8px!important}.activityHead .activityAvatar{width:38px;height:38px;border-radius:12px}
+#home .cardHead{padding:12px 13px}#home #leader .row{padding:10px 12px;gap:9px}#home #leader .avatar{width:38px;height:38px;border-radius:12px}#home #leader .rankIcon{width:38px;height:38px}#home #leader .profileHint{display:none}#home #leader .sub{font-size:9px;line-height:1.3}#home #leader .name{font-size:12px}.leaderTapHint{font-size:8px;color:#747d92;margin-top:2px}
+.notifyBell{width:40px;height:40px;border-radius:13px;font-size:18px;top:calc(10px + env(safe-area-inset-top));right:max(12px,calc((100vw - 720px)/2 + 12px))}
+.bottom{padding-top:4px}.bottom button{padding:7px 1px 8px;font-size:8px}.bottom button span{height:22px;display:grid;place-items:center;font-size:0}.navIcon{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.bottom button.on .navIcon{stroke:#fff}.bottom button.on{color:#fff}.bottom button:not(.on){color:#737b90}
+.homeLoading{position:relative;overflow:hidden;background:#151a27;border-radius:10px;min-height:14px}.homeLoading:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,#ffffff0b,transparent);animation:homeShimmer 1.2s infinite}
+@keyframes homeShimmer{100%{transform:translateX(100%)}}@keyframes homeFade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+@media(max-width:430px){#home{padding-bottom:4px}.homeHero h1{font-size:25px}#home .stat b{font-size:17px}.notifyBell{width:38px;height:38px}.bottom button{font-size:7.5px}.navIcon{width:20px;height:20px}}
+
 </style>
 </head>
 <body>
@@ -195,14 +213,14 @@ window.OneSignalDeferred.push(async function(OneSignal) {
 <main>
 <section id="home" class="page on">
   <div id="homeGlobalRank" class="card" style="padding:14px"></div>
-  <div class="hero"><h1 id="welcome">Your Club</h1><p class="muted">Your rank is global. Create or join a club to play, post, and run tournaments with friends.</p><div id="currentLeagueChip"></div></div>
+  <div class="hero homeHero"><h1 id="welcome">Your Club</h1><p class="muted">Your club hub for matches, posts, tournaments, and friends.</p><div id="currentLeagueChip"></div></div>
   <div id="noLeague" class="card" style="padding:16px"><h2 style="margin:0">Get started</h2><div class="field"><label>Create club</label><input id="newLeagueName" placeholder="Sunnyside Paddle Club"></div><button class="btn primary full" style="margin-top:10px" onclick="createLeague()">Create Club</button><div class="field" style="margin-top:18px"><label>Join with code</label><input id="joinCode" class="code" maxlength="6" placeholder="ABC123"></div><button class="btn full" style="margin-top:10px" onclick="joinLeague()">Join Club</button></div>
   <div id="leagueDashboard" class="hidden">
   <div class="stats" id="stats"></div>
   <div class="postComposer" id="postComposer">
-  <div class="postComposerTop"><div class="activityAvatar" id="composerAvatar">?</div><div class="grow"><b>Post to your club</b><div class="sub">Share an update with everyone in this club.</div></div></div>
-  <textarea id="postBody" maxlength="500" placeholder="What’s happening?"></textarea>
-  <div class="postComposerActions"><span id="postCharCount" class="charCount">0 / 500</span><button class="btn primary" onclick="createLeaguePost()">Post</button></div>
+  <div class="postComposerTop" onclick="togglePostComposer()"><div class="activityAvatar" id="composerAvatar">?</div><div class="grow"><b>Post to your club</b><div class="composerPrompt">Share something with your club…</div></div><span class="composerChevron">⌄</span></div>
+  <div class="postComposerBody"><textarea id="postBody" maxlength="500" placeholder="What’s happening?"></textarea>
+  <div class="postComposerActions"><span id="postCharCount" class="charCount">0 / 500</span><button class="btn primary" onclick="createLeaguePost()">Post</button></div></div>
 </div>
 <div class="feedTitle"><h2 style="margin:0">Activity</h2><span class="pill">CLUB FEED</span></div>
   <div id="activityFeed" class="activityFeed"></div>
@@ -379,7 +397,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
   <div class="card signoutCard" style="padding:14px"><button class="btn danger full" onclick="signOut()">Sign Out</button><div class="sub" style="text-align:center;margin-top:8px">You can sign back in anytime with your account.</div></div>
 </section>
 </main>
-<nav class="bottom"><button class="on" data-page="home"><span>🏠</span>Home</button><button data-page="globalLeague"><span>🌎</span>League</button><button data-page="leagues"><span>🎾</span>Clubs</button><button data-page="courts"><span>📍</span>Courts</button><button data-page="matches"><span>🎾</span>Matches</button><button data-page="account"><span>👤</span>Account</button></nav>
+<nav class="bottom"><button class="on" data-page="home"><span><svg class="navIcon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-7h6v7"/></svg></span>Home</button><button data-page="globalLeague"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></span>League</button><button data-page="leagues"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20c.4-4 2.4-6 5.5-6s5.1 2 5.5 6M14 15c3.5-.5 5.7 1.2 6.2 4.5"/></svg></span>Clubs</button><button data-page="courts"><span><svg class="navIcon" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Courts</button><button data-page="matches"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7c3.5 3.5 9.1 3.5 12.6 0M5.7 18.3c3.5-3.5 9.1-3.5 12.6 0"/></svg></span>Matches</button><button data-page="account"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.7-4.3 3.2-6.5 7.5-6.5s6.8 2.2 7.5 6.5"/></svg></span>Account</button></nav>
 </div>
 <div id="toast" class="toast"></div>
 <div id="milestoneOverlay" class="milestoneOverlay hiddenImportant"><div class="milestoneCard"><div id="milestoneIcon" class="milestoneIcon">🏆</div><div class="milestoneTag">MILESTONE UNLOCKED</div><h2 id="milestoneTitle">Moving Up!</h2><p id="milestoneBody"></p><button class="btn primary full" onclick="closeMilestone()">Let’s go 🔥</button></div></div>
@@ -784,13 +802,19 @@ function postCard(post){
     </div>
   </div>`
 }
+function togglePostComposer(forceOpen){
+  const c=$('postComposer');if(!c)return;
+  const open=typeof forceOpen==='boolean'?forceOpen:!c.classList.contains('open');
+  c.classList.toggle('open',open);
+  if(open)setTimeout(()=>$('postBody')?.focus(),80);
+}
 async function createLeaguePost(){
   if(!currentLeague)return toast('Join a league first.');
   const el=$('postBody'),body=(el?.value||'').trim();
   if(!body)return toast('Write something first.');
   const {error}=await sb.from('league_posts').insert({league_id:currentLeague.id,user_id:session.user.id,body});
   if(error)return toast(moderationErrorMessage(error));
-  el.value='';$('postCharCount').textContent='0 / 500';await loadSocialPosts();renderActivityFeed();toast('Posted to club');
+  el.value='';$('postCharCount').textContent='0 / 500';togglePostComposer(false);await loadSocialPosts();renderActivityFeed();toast('Posted to club');
 }
 async function deleteLeaguePost(id){
   if(!confirm('Delete this post?'))return;
@@ -849,7 +873,7 @@ function playerTournamentWins(userId){
   try{return getTournaments().filter(t=>t.champion?.id===userId).length}catch(e){return 0}
 }
 
-function renderDashboard(){const top=members[0];$('stats').innerHTML=`<div class="stat"><small>Players</small><b>${members.length}</b></div><div class="stat"><small>Matches</small><b>${matches.length}</b></div><div class="stat"><small>Leader</small><b>${top?escapeHtml(top.display_name):'—'}</b></div>`;$('leader').innerHTML=members.length?members.map((p,i)=>`<div class="row clickable" onclick="showPlayerProfile('${p.user_id}')"><div style="width:22px;color:#7e869a;font-weight:900">${i+1}</div><div class="avatar">${initials(p.display_name)}</div><div class="grow"><div class="name">${escapeHtml(p.display_name)} ${roleBadge(clubRoles[p.user_id]||(p.user_id===currentLeague?.owner_id?'owner':'member'))}</div><div class="sub">${p.wins}-${p.losses} • ${pct(p.wins,p.losses)}% • PD ${signed(p.points_for-p.points_against)} • 🔥 ${currentWinStreak(p.streak)}</div></div><div class="leaderRank">${rankImg(p.elo,'sm')}<div class="leaderRankText"><div class="rating">${p.elo}</div>${badge(p.elo)}<div class="sub">View profile ›</div></div></div></div>`).join(''):'<div class="empty">No players yet.</div>'}
+function renderDashboard(){const top=members[0];$('stats').innerHTML=`<div class="stat"><small>Players</small><b>${members.length}</b></div><div class="stat"><small>Matches</small><b>${matches.length}</b></div><div class="stat"><small>Leader</small><b>${top?escapeHtml(top.display_name):'—'}</b></div>`;$('leader').innerHTML=members.length?members.map((p,i)=>`<div class="row clickable" onclick="showPlayerProfile('${p.user_id}')"><div style="width:22px;color:${i<3?'#c4b5fd':'#7e869a'};font-weight:900">${i+1}</div><div class="avatar">${initials(p.display_name)}</div><div class="grow"><div class="name">${escapeHtml(p.display_name)} ${roleBadge(clubRoles[p.user_id]||(p.user_id===currentLeague?.owner_id?'owner':'member'))}</div><div class="sub">${p.wins}-${p.losses} • ${pct(p.wins,p.losses)}% • PD ${signed(p.points_for-p.points_against)} • 🔥 ${currentWinStreak(p.streak)}</div><div class="leaderTapHint">Tap for profile</div></div><div class="leaderRank">${rankImg(p.elo,'sm')}<div class="leaderRankText"><div class="rating">${p.elo}</div>${badge(p.elo)}</div></div></div>`).join(''):'<div class="empty">No players yet. Play a match to start the leaderboard.</div>'}
 
 function setVerifiedMode(mode){verifiedMode=mode;['1s','2s','3s'].forEach(m=>$('vMode'+m).classList.toggle('on',m===mode))}
 function openCreateVerified(){if(!currentLeague)return toast('Create or join a club first.');closeVerifiedForms();$('verifiedCreate').classList.remove('hidden')}
