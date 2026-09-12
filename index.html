@@ -850,7 +850,15 @@ function renderActivityFeed(){
   (casualMatches||[]).forEach(m=>{const a=m.team1_names||'Team 1',b=m.team2_names||'Team 2';items.push({type:'casual',date:m.created_at,html:`<div class="activityCard"><div class="activityHead"><div class="activityAvatar">🎾</div><div class="grow"><b>${escapeHtml(a)} vs ${escapeHtml(b)}</b><div class="sub">Casual ${escapeHtml(m.match_type||'1s')} match • no ELO</div></div><span class="pill">CASUAL</span></div><div class="activityScore">${escapeHtml(a)} <span class="${m.score1>m.score2?'win':'loss'}">${m.score1}</span> — <span class="${m.score2>m.score1?'win':'loss'}">${m.score2}</span> ${escapeHtml(b)}</div><div class="activityMeta"><span>🎾 Casual result</span>${m.court_name?`<span>📍 ${escapeHtml(m.court_name)}</span>`:''}<span>${timeAgo(m.created_at)}</span></div></div>`})});
   try{getTournaments().forEach(t=>{if(t.champion)items.push({type:'tourney',date:t.createdAt,html:`<div class="activityCard"><div class="activityHead"><div class="activityAvatar">🏆</div><div class="grow"><b><span class="profileLink" onclick="event.stopPropagation();showPlayerProfile('${t.champion.id}')">${escapeHtml(t.champion.name)}</span> won ${escapeHtml(t.name)}</b><div class="sub">${t.ranked?'Ranked':'Unranked'} ${formatName(t.format)} tournament champion</div></div><span class="autoBadge">AUTO</span></div><div class="activityMeta"><span>🥇 Tournament result</span><span>${timeAgo(t.createdAt)}</span></div></div>`})})}catch(e){}
   items.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  el.innerHTML=items.length?items.slice(0,20).map(x=>x.html).join(''):'<div class="card"><div class="empty">No activity yet. Be the first to post something.</div></div>';
+  let homeMatchCount=0;
+  const homeItems=items.filter(x=>{
+    if(x.type==='match'||x.type==='casual'){
+      if(homeMatchCount>=5)return false;
+      homeMatchCount++;
+    }
+    return true;
+  }).slice(0,20);
+  el.innerHTML=homeItems.length?homeItems.map(x=>x.html).join(''):'<div class="card"><div class="empty">No activity yet. Be the first to post something.</div></div>';
 }
 
 function buildEloSeries(currentElo,hist){
