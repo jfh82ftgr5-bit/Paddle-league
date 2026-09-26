@@ -24,3 +24,14 @@ V1.1: Added Cancel Match / Leave Match for matched Looking to Play plans. Cancel
 
 
 Advanced Stats V1: adds ranked win rate, recent form, Last 10, ELO gained/lost/net, biggest ELO win, average and biggest winning margin to Account and player profiles.
+
+
+LEAGUE POLISH V1
+- More compact Paddle League header
+- Cleaner Season empty state
+- Expandable Season Points explanation
+- Tighter Players Near Your ELO and Global Leaderboard rows
+- Entire player rows remain tappable; repeated View Profile text removed
+- Equal ratings now say "Same ELO"
+- Tap your Global Rank card to jump to your leaderboard position
+- No Supabase/database changes required

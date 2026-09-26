@@ -171,6 +171,38 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 @keyframes homeShimmer{100%{transform:translateX(100%)}}@keyframes homeFade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @media(max-width:430px){#home{padding-bottom:4px}.homeHero h1{font-size:25px}#home .stat b{font-size:17px}.notifyBell{width:38px;height:38px}.bottom button{font-size:7.5px}.navIcon{width:20px;height:20px}}
 
+
+/* League Polish V1 */
+#globalLeague>.hero{padding:16px 18px}
+#globalLeague>.hero h1{font-size:27px}
+#globalLeague>.hero>p{font-size:11px;line-height:1.42;margin:5px 0 10px}
+#globalMyRank .leagueChip{margin-top:8px;padding:10px 11px;cursor:pointer}
+#globalMyRank .leagueChip:active{background:#121725}
+#globalLeague .cardHead{padding:12px 13px}
+#globalLeague .row{padding:10px 12px;gap:9px}
+#globalLeague .avatar{width:38px;height:38px;border-radius:12px}
+#globalLeague .rankIcon.sm{width:34px;height:34px}
+#globalLeague .profileHint{display:none}
+#globalLeague .name{font-size:12px}
+#globalLeague .sub{font-size:9px;line-height:1.35}
+#globalLeague .leaderRank{gap:5px}
+#globalLeague .rating{font-size:15px}
+#globalLeague .badge{font-size:8px;padding:3px 6px}
+#nearEloPlayers .row[style*="background"]{background:#17152a!important}
+.seasonEmpty{padding:18px 16px;text-align:center}
+.seasonEmptyIcon{font-size:27px;margin-bottom:6px}
+.seasonEmpty b{display:block;font-size:14px}
+.seasonEmpty .sub{max-width:310px;margin:5px auto 0;line-height:1.45}
+.seasonRulesBtn{background:none;border:0;color:#b9a7ff;font-weight:850;font-size:10px;padding:8px 0;cursor:pointer}
+.seasonRules{margin:0 14px 13px;padding:11px 12px;background:#0b0f17;border:1px solid #282e40;border-radius:12px;color:#9aa3b7;font-size:10px;line-height:1.5}
+.seasonBoardEmpty{padding:18px;text-align:center;color:#858da1;font-size:11px}
+.leagueJumpHint{font-size:8px;color:#777f95;margin-top:3px}
+@media(max-width:430px){
+  #globalLeague>.hero h1{font-size:25px}
+  #globalLeague .row{padding:9px 10px}
+  #globalLeague .rankIcon.sm{width:32px;height:32px}
+}
+
 </style>
 </head>
 <body>
@@ -228,8 +260,8 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 </div>
 </section>
 <section id="globalLeague" class="page">
-  <div class="hero"><h1>🌎 Paddle League</h1><p class="muted">Every player is automatically part of the global league. Ranked matches in any club affect this one ELO and one rank.</p><div id="globalMyRank"></div></div>
-  <div class="card" id="seasonCard"><div class="cardHead"><div><b>🏆 Season 1</b><div id="seasonDates" class="sub">8-week seasonal competition • Career ELO never resets</div></div><span id="seasonCountdown" class="pill">LOADING</span></div><div id="mySeasonSummary"><div class="empty">Loading season…</div></div><div style="padding:0 14px 10px"><button class="btn primary full" onclick="toggleSeasonBoard()">View Season Leaderboard</button></div><div id="seasonLeaderboardWrap" class="hidden"><div class="cardHead"><b>Season Standings</b><span class="pill">10 MATCHES TO QUALIFY</span></div><div id="seasonLeaderboard"></div><div class="communityNote" style="margin:10px 14px 14px">SP: +10 win • +2 loss • up to +8 upset bonus. Repeated matches against the same opponent in one week earn reduced SP.</div></div></div>
+  <div class="hero"><h1>🌎 Paddle League</h1><p class="muted">One global ELO and rank across every club. Ranked matches move both.</p><div id="globalMyRank"></div></div>
+  <div class="card" id="seasonCard"><div class="cardHead"><div><b>🏆 Season 1</b><div id="seasonDates" class="sub">8-week competition • Career ELO never resets</div></div><span id="seasonCountdown" class="pill">LOADING</span></div><div id="mySeasonSummary"><div class="empty">Loading season…</div></div><div style="padding:0 14px 8px"><button id="seasonToggleBtn" class="btn primary full" onclick="toggleSeasonBoard()">View Season Leaderboard</button><button class="seasonRulesBtn full" onclick="toggleSeasonRules()">How Season Points work ›</button></div><div id="seasonRules" class="seasonRules hidden">Win: +10 SP • Loss: +2 SP • Upset wins can earn up to +8 bonus SP. Repeated matches against the same opponent in one week earn reduced SP. Play 10 ranked Season matches to qualify.</div><div id="seasonLeaderboardWrap" class="hidden"><div class="cardHead"><b>Season Standings</b><span class="pill">10 MATCHES TO QUALIFY</span></div><div id="seasonLeaderboard"></div></div></div>
   <div class="card"><div class="cardHead"><div><b>🎯 Players Near Your ELO</b><div class="sub">Your closest competition — roughly 5 above and 5 below.</div></div><span class="pill">NEAR YOU</span></div><div id="nearEloPlayers"><div class="empty">Loading nearby players…</div></div></div>
   <div class="card"><div class="cardHead"><b>🌎 Global Leaderboard</b><span id="globalPlayerCount" class="pill">0 PLAYERS</span></div><div id="globalLeaderboard"><div class="empty">Loading global leaderboard…</div></div></div>
   <div class="card" style="padding:14px"><b>How it works</b><div class="sub" style="margin-top:7px;line-height:1.5">New players start at <b style="color:#7bd64b">Rally • 800 ELO</b>. Rookie still exists below Rally. Your rank follows you everywhere, while Clubs are just the groups you play and compete in.</div></div>
@@ -626,7 +658,7 @@ function renderHomeGlobalRank(){
 function renderGlobalLeague(){
   const list=$('globalLeaderboard'),mine=$('globalMyRank'),near=$('nearEloPlayers');if(!list||!mine)return;
   const p=myGlobalStats,pos=p?globalLeaderboard.findIndex(x=>x.user_id===p.user_id)+1:0;
-  mine.innerHTML=p?`<div class="leagueChip"><div>${rankImg(p.elo,'sm')}</div><div class="grow"><div class="sub">YOUR GLOBAL RANK</div><b>${rankFor(p.elo)[0]} • ${p.elo} ELO</b><div class="sub">${pos?`#${pos} of ${globalLeaderboard.length} players • `:''}${p.wins}-${p.losses} • PD ${signed(p.points_for-p.points_against)}</div></div></div>`:'';
+  mine.innerHTML=p?`<div class="leagueChip clickable" onclick="jumpToMyGlobalRank()"><div>${rankImg(p.elo,'sm')}</div><div class="grow"><div class="sub">YOUR GLOBAL RANK</div><b>${rankFor(p.elo)[0]} • ${p.elo} ELO</b><div class="sub">${pos?`#${pos} of ${globalLeaderboard.length} players • `:''}${p.wins}-${p.losses} • PD ${signed(p.points_for-p.points_against)}</div><div class="leagueJumpHint">Tap to jump to your leaderboard position ↓</div></div></div>`:'';
   if($('globalPlayerCount'))$('globalPlayerCount').textContent=`${globalLeaderboard.length} PLAYER${globalLeaderboard.length===1?'':'S'}`;
 
   if(near){
@@ -648,11 +680,11 @@ function renderGlobalLeague(){
       }else{
         nearby=[...sorted].sort((a,b)=>Math.abs(a.elo-p.elo)-Math.abs(b.elo-p.elo)).slice(0,10).sort((a,b)=>b.elo-a.elo);
       }
-      near.innerHTML=nearby.map(x=>`<div class="row clickable" onclick="showPlayerProfile('${x.user_id}')" style="${x.user_id===session?.user?.id?'background:#17152a':''}"><div class="avatar">${initials(x.display_name)}</div><div class="grow"><div class="name">${escapeHtml(x.display_name)} ${x.user_id===session?.user?.id?'<span class="activeLeagueBadge">YOU</span>':''}</div><div class="sub">${x.wins}-${x.losses} • ${Math.abs(x.elo-p.elo)} ELO away • ${rankFor(x.elo)[0]}</div><div class="profileHint">View profile ›</div></div><div class="leaderRank">${rankImg(x.elo,'sm')}<div class="leaderRankText"><div class="rating">${x.elo}</div>${badge(x.elo)}</div></div></div>`).join('');
+      near.innerHTML=nearby.map(x=>`<div class="row clickable" onclick="showPlayerProfile('${x.user_id}')" style="${x.user_id===session?.user?.id?'background:#17152a':''}"><div class="avatar">${initials(x.display_name)}</div><div class="grow"><div class="name">${escapeHtml(x.display_name)} ${x.user_id===session?.user?.id?'<span class="activeLeagueBadge">YOU</span>':''}</div><div class="sub">${x.wins}-${x.losses} • ${Math.abs(x.elo-p.elo)===0?'Same ELO':`${Math.abs(x.elo-p.elo)} ELO away`} • ${rankFor(x.elo)[0]}</div></div><div class="leaderRank">${rankImg(x.elo,'sm')}<div class="leaderRankText"><div class="rating">${x.elo}</div>${badge(x.elo)}</div></div></div>`).join('');
     }
   }
 
-  list.innerHTML=globalLeaderboard.length?globalLeaderboard.map((x,i)=>`<div class="row clickable" onclick="showPlayerProfile('${x.user_id}')"><div style="width:25px;color:${i<3?'#ffd34f':'#7e869a'};font-weight:950">${i+1}</div><div class="avatar">${initials(x.display_name)}</div><div class="grow"><div class="name">${escapeHtml(x.display_name)} ${x.user_id===session?.user?.id?'<span class="activeLeagueBadge">YOU</span>':''}</div><div class="sub">${x.wins}-${x.losses} • ${pct(x.wins,x.losses)}% • PD ${signed(x.points_for-x.points_against)} • 🔥 ${currentWinStreak(x.streak)}</div><div class="profileHint">View profile ›</div></div><div class="leaderRank">${rankImg(x.elo,'sm')}<div class="leaderRankText"><div class="rating">${x.elo}</div>${badge(x.elo)}</div></div></div>`).join(''):'<div class="empty">No players yet.</div>'
+  list.innerHTML=globalLeaderboard.length?globalLeaderboard.map((x,i)=>`<div id="global-player-${x.user_id}" class="row clickable" onclick="showPlayerProfile('${x.user_id}')"><div style="width:25px;color:${i<3?'#ffd34f':'#7e869a'};font-weight:950">${i+1}</div><div class="avatar">${initials(x.display_name)}</div><div class="grow"><div class="name">${escapeHtml(x.display_name)} ${x.user_id===session?.user?.id?'<span class="activeLeagueBadge">YOU</span>':''}</div><div class="sub">${x.wins}-${x.losses} • ${pct(x.wins,x.losses)}% • PD ${signed(x.points_for-x.points_against)} • 🔥 ${currentWinStreak(x.streak)}</div></div><div class="leaderRank">${rankImg(x.elo,'sm')}<div class="leaderRankText"><div class="rating">${x.elo}</div>${badge(x.elo)}</div></div></div>`).join(''):'<div class="empty">No players yet.</div>'
 }
 
 async function loadSeason(){
@@ -664,14 +696,16 @@ async function loadSeason(){
   const {data,error:lbErr}=await sb.rpc('get_season_leaderboard',{p_season_id:activeSeason.id});
   seasonLeaderboard=lbErr?[]:(data||[]);renderSeason();await evaluateSeasonMilestones();
 }
-function toggleSeasonBoard(){const w=$('seasonLeaderboardWrap');if(w)w.classList.toggle('hidden')}
+function toggleSeasonBoard(){const w=$('seasonLeaderboardWrap'),b=$('seasonToggleBtn');if(!w)return;w.classList.toggle('hidden');if(b)b.textContent=w.classList.contains('hidden')?'View Season Leaderboard':'Hide Season Leaderboard'}
+function toggleSeasonRules(){const r=$('seasonRules');if(r)r.classList.toggle('hidden')}
+function jumpToMyGlobalRank(){if(!session)return;const el=$(`global-player-${session.user.id}`);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.animate([{background:'#2a2050'},{background:''}],{duration:900})}}
 function renderSeason(){
  const sum=$('mySeasonSummary'),list=$('seasonLeaderboard'),dates=$('seasonDates'),count=$('seasonCountdown');if(!sum)return;
  if(!activeSeason){sum.innerHTML='<div class="empty">No active season right now.</div>';if(count)count.textContent='OFFSEASON';return}
  const end=new Date(activeSeason.ends_at),start=new Date(activeSeason.starts_at),days=Math.max(0,Math.ceil((end-Date.now())/86400000));
  if(dates)dates.textContent=`${start.toLocaleDateString()} – ${end.toLocaleDateString()} • Career ELO never resets`;if(count)count.textContent=`${days}D LEFT`;
  const me=seasonLeaderboard.find(x=>x.user_id===session.user.id),pos=seasonLeaderboard.findIndex(x=>x.user_id===session.user.id)+1;
- if(!me)sum.innerHTML='<div style="padding:16px"><b>Your Season</b><div class="sub" style="margin-top:6px">No ranked Season 1 matches yet. Your first ranked match starts your season stats.</div></div>';
+ if(!me)sum.innerHTML='<div class="seasonEmpty"><div class="seasonEmptyIcon">🏆</div><b>Play a ranked match to start your Season</b><div class="sub">Your first ranked match starts your Season Points, record, ELO change, and streak stats.</div></div>';
  else sum.innerHTML=`<div style="padding:16px"><div style="display:flex;justify-content:space-between;gap:12px"><div><div class="sub">YOUR SEASON</div><b style="font-size:24px">${me.season_points} SP</b><div class="sub">#${pos} • ${me.qualified?'QUALIFIED':`${Math.max(0,10-Number(me.matches_played))} matches to qualify`}</div></div><div style="text-align:right"><b>${me.wins}-${me.losses}</b><div class="sub">${me.win_pct||0}% wins</div><div class="sub">ELO ${signed(me.elo_change)}</div></div></div><div class="statGrid" style="margin-top:12px"><div><b>${me.matches_played}</b><span>Matches</span></div><div><b>${me.best_streak}</b><span>Best Streak</span></div><div><b>${me.season_points}</b><span>Season Points</span></div></div></div>`;
  if(list)list.innerHTML=seasonLeaderboard.length?seasonLeaderboard.map((x,i)=>`<div class="row clickable" onclick="showPlayerProfile('${x.user_id}')"><div style="width:28px;font-weight:950;color:${i<3?'#ffd34f':'#7e869a'}">${i+1}</div><div class="avatar">${initials(x.display_name)}</div><div class="grow"><div class="name">${escapeHtml(x.display_name)} ${x.user_id===session.user.id?'<span class="activeLeagueBadge">YOU</span>':''}</div><div class="sub">${x.wins}-${x.losses} • ${x.win_pct||0}% • ELO ${signed(x.elo_change)} • 🔥 ${x.best_streak}</div></div><div style="text-align:right"><b>${x.season_points} SP</b><div class="sub">${x.qualified?'QUALIFIED':'PROVISIONAL'}</div></div></div>`).join(''):'<div class="empty">No Season 1 matches yet.</div>';
 }
