@@ -203,6 +203,42 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
   #globalLeague .rankIcon.sm{width:32px;height:32px}
 }
 
+
+/* Clubs Polish V1 */
+#leagues>.hero{padding:15px 18px}
+#leagues>.hero h1{font-size:27px}
+#leagues>.hero p{font-size:11px;line-height:1.42;margin:5px 0}
+.clubSpotlight{padding:15px;background:linear-gradient(145deg,#171a2a,#10131d)}
+.clubSpotlightTop{display:flex;align-items:center;gap:11px}
+.clubSpotlightIcon{width:46px;height:46px;border-radius:14px;background:#202638;display:grid;place-items:center;font-size:24px;flex:0 0 auto}
+.clubSpotlightName{font-size:18px;font-weight:950;line-height:1.15}
+.clubSpotlightMeta{font-size:9px;color:#8e95a8;margin-top:4px}
+.clubQuickStats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.clubQuickStat{background:#0b0f17;border:1px solid #252a3b;border-radius:12px;padding:9px 10px}
+.clubQuickStat small{display:block;font-size:8px;color:#858da1;text-transform:uppercase;letter-spacing:.08em}
+.clubQuickStat b{display:block;margin-top:3px;font-size:14px}
+.clubQuickActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.clubQuickActions .btn{padding:9px 6px;font-size:9px}
+.clubSectionLabel{display:flex;justify-content:space-between;align-items:center;margin:15px 3px 7px}
+.clubSectionLabel b{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9aa3b7}
+#leagues .leagueSwitcher{gap:7px}
+#leagues .leagueCard{padding:10px 11px;border-radius:14px}
+#leagues .leagueCard .avatar{width:38px;height:38px;border-radius:12px}
+#leagues .leagueCard.active{display:none}
+.clubTools{display:grid;gap:8px;margin-top:13px}
+.clubToolToggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:#10131d;border:1px solid #252a3b;border-radius:14px;color:#fff;padding:12px 14px;font-weight:900}
+.clubToolToggle span:last-child{color:#858da1}
+.clubToolBody{display:none;background:#10131d;border:1px solid #252a3b;border-top:0;border-radius:0 0 14px 14px;padding:0 14px 14px;margin-top:-9px}
+.clubTool.open .clubToolToggle{border-radius:14px 14px 0 0}
+.clubTool.open .clubToolBody{display:block}
+.clubTool.open .clubToolToggle span:last-child{transform:rotate(180deg)}
+.clubToolToggle span:last-child{transition:transform .16s ease}
+@media(max-width:430px){
+  #leagues>.hero h1{font-size:25px}
+  .clubSpotlightName{font-size:16px}
+  .clubQuickStat b{font-size:13px}
+}
+
 </style>
 </head>
 <body>
@@ -266,10 +302,25 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
   <div class="card"><div class="cardHead"><b>🌎 Global Leaderboard</b><span id="globalPlayerCount" class="pill">0 PLAYERS</span></div><div id="globalLeaderboard"><div class="empty">Loading global leaderboard…</div></div></div>
   <div class="card" style="padding:14px"><b>How it works</b><div class="sub" style="margin-top:7px;line-height:1.5">New players start at <b style="color:#7bd64b">Rally • 800 ELO</b>. Rookie still exists below Rally. Your rank follows you everywhere, while Clubs are just the groups you play and compete in.</div></div>
 </section><section id="leagues" class="page">
-  <div class="hero"><h1>Your Clubs</h1><p class="muted">Clubs are your communities. Your global ELO and rank stay the same no matter which club is active.</p></div>
-  <div class="card"><div class="cardHead"><b>🎾 Club memberships</b><span id="leagueCount" class="pill">0 CLUBS</span></div><div id="leagueList" class="leagueSwitcher"></div></div><div id="clubManagementCard" class="card hidden"><div class="cardHead"><div><b>⚙️ Club Management</b><div id="clubManagementSub" class="sub"></div></div><button class="btn" onclick="loadClubManagement(true)">Refresh</button></div><div id="clubManagementBody"><div class="empty">Choose a club to manage it.</div></div></div>
-  <div class="card" style="padding:16px"><h2 style="margin:0 0 8px">Join another club</h2><div class="field"><label>Join code</label><input id="joinAnotherCode" class="code" maxlength="6" placeholder="ABC123"></div><button class="btn primary full" style="margin-top:10px" onclick="joinAnotherLeague()">Join Club</button></div>
-  <div class="card" style="padding:16px"><h2 style="margin:0 0 8px">Create another club</h2><div class="field"><label>Club name</label><input id="newAnotherLeagueName" maxlength="40" placeholder="Friday Night Paddle Club"></div><button class="btn full" style="margin-top:10px" onclick="createAnotherLeague()">Create Club</button></div>
+  <div class="hero"><h1>Your Clubs</h1><p class="muted">Your communities for matches, posts, tournaments, and friends. Your global rank stays the same everywhere.</p></div>
+
+  <div id="activeClubSpotlight" class="card clubSpotlight"><div class="empty">Loading active club…</div></div>
+
+  <div class="clubSectionLabel"><b>Your other clubs</b><span id="leagueCount" class="pill">0 CLUBS</span></div>
+  <div id="leagueList" class="leagueSwitcher"></div>
+
+  <div id="clubManagementCard" class="card hidden" style="margin-top:13px"><div class="cardHead"><div><b>⚙️ Club Management</b><div id="clubManagementSub" class="sub"></div></div><button class="btn" onclick="loadClubManagement(true)">Refresh</button></div><div id="clubManagementBody"><div class="empty">Choose a club to manage it.</div></div></div>
+
+  <div class="clubTools">
+    <div class="clubTool" id="joinClubTool">
+      <button class="clubToolToggle" onclick="toggleClubTool('joinClubTool')"><span>＋ Join another club</span><span>⌄</span></button>
+      <div class="clubToolBody"><div class="field"><label>Join code</label><input id="joinAnotherCode" class="code" maxlength="6" placeholder="ABC123"></div><button class="btn primary full" style="margin-top:10px" onclick="joinAnotherLeague()">Join Club</button></div>
+    </div>
+    <div class="clubTool" id="createClubTool">
+      <button class="clubToolToggle" onclick="toggleClubTool('createClubTool')"><span>＋ Create another club</span><span>⌄</span></button>
+      <div class="clubToolBody"><div class="field"><label>Club name</label><input id="newAnotherLeagueName" maxlength="40" placeholder="Friday Night Paddle Club"></div><button class="btn full" style="margin-top:10px" onclick="createAnotherLeague()">Create Club</button></div>
+    </div>
+  </div>
 </section>
 <section id="matches" class="page">
 <div class="hero">
@@ -774,10 +825,22 @@ async function loadLeagues(){
   renderLeagues();await loadCurrentLeague()
 }
 function renderLeagues(){
-  const el=$('leagueList');if(!el)return;
+  const el=$('leagueList'),spot=$('activeClubSpotlight');if(!el)return;
   if($('leagueCount'))$('leagueCount').textContent=`${myLeagues.length} CLUB${myLeagues.length===1?'':'S'}`;
-  el.innerHTML=myLeagues.length?myLeagues.map(l=>`<div class="leagueCard ${currentLeague?.id===l.id?'active':''}" onclick="selectLeague('${l.id}')"><div class="leagueCardTop"><div class="avatar">🎾</div><div class="grow"><div class="name">${escapeHtml(l.name)} ${roleBadge(l.owner_id===session?.user?.id?'owner':l.club_role)}</div><div class="sub">${escapeHtml(l.season_name)} • Join code <span class="code">${l.join_code}</span></div></div>${currentLeague?.id===l.id?'<span class="activeLeagueBadge">ACTIVE</span>':'<span>›</span>'}</div></div>`).join(''):'<div class="empty">No clubs yet.</div>'
+  const others=myLeagues.filter(l=>l.id!==currentLeague?.id);
+  el.innerHTML=others.length?others.map(l=>`<div class="leagueCard clickable" onclick="selectLeague('${l.id}')"><div class="leagueCardTop"><div class="avatar">🎾</div><div class="grow"><div class="name">${escapeHtml(l.name)} ${roleBadge(l.owner_id===session?.user?.id?'owner':l.club_role)}</div><div class="sub">${escapeHtml(l.season_name)} • Join code <span class="code">${l.join_code}</span></div></div><span>›</span></div></div>`).join(''):'<div class="empty" style="padding:16px">No other clubs yet.</div>';
+  if(spot){
+    if(!currentLeague){spot.innerHTML='<div class="empty">Join or create a club to get started.</div>';return}
+    const leader=(members||[]).slice().sort((a,b)=>(b.elo||0)-(a.elo||0))[0];
+    const official=(matches||[]).length;
+    const role=currentLeague.owner_id===session?.user?.id?'owner':(currentLeague.club_role||'member');
+    spot.innerHTML=`<div class="clubSpotlightTop"><div class="clubSpotlightIcon">🎾</div><div class="grow"><div class="clubSpotlightName">${escapeHtml(currentLeague.name)}</div><div class="clubSpotlightMeta">${escapeHtml(currentLeague.season_name)} • Join code <span class="code">${currentLeague.join_code}</span> ${roleBadge(role)}</div></div><span class="activeLeagueBadge">ACTIVE</span></div>
+    <div class="clubQuickStats"><div class="clubQuickStat"><small>Players</small><b>${members?.length||0}</b></div><div class="clubQuickStat"><small>Matches</small><b>${official}</b></div><div class="clubQuickStat"><small>Leader</small><b>${leader?escapeHtml(leader.display_name):'—'}</b></div></div>
+    <div class="clubQuickActions"><button class="btn primary" onclick="event.stopPropagation();showPage('home')">Open Club</button><button class="btn" onclick="event.stopPropagation();copyCode()">Copy Code</button><button class="btn" onclick="event.stopPropagation();openClubManage()">${role==='owner'||role==='admin'?'Manage':'Members'}</button></div>`
+  }
 }
+function toggleClubTool(id){const el=$(id);if(el)el.classList.toggle('open')}
+function openClubManage(){const c=$('clubManagementCard');if(c&&!c.classList.contains('hidden')){c.scrollIntoView({behavior:'smooth',block:'start'});loadClubManagement(true)}else toast('Club management is available to club owners and admins.')}
 async function selectLeague(id){
   currentLeague=myLeagues.find(x=>x.id===id)||null;
   if(currentLeague)localStorage.setItem('paddle_active_league',currentLeague.id);
@@ -786,20 +849,20 @@ async function selectLeague(id){
 async function createAnotherLeague(){
   const name=$('newAnotherLeagueName').value.trim();if(!name)return toast('Give the club a name.');
   const {data,error}=await sb.rpc('create_league',{p_name:name,p_season_name:'Season 1'});if(error)return toast(error.message);
-  $('newAnotherLeagueName').value='';await loadLeagues();
+  $('newAnotherLeagueName').value='';$('createClubTool')?.classList.remove('open');await loadLeagues();
   const createdId=data?.[0]?.league_id||data?.league_id;if(createdId){currentLeague=myLeagues.find(x=>x.id===createdId)||currentLeague;localStorage.setItem('paddle_active_league',createdId)}
   renderLeagues();await loadCurrentLeague();toast('Club created — your global rank stays the same.')
 }
 async function joinAnotherLeague(){
   const code=$('joinAnotherCode').value.trim().toUpperCase();if(code.length!==6)return toast('Enter the 6-character club code.');
   const {data,error}=await sb.rpc('join_league_by_code',{p_code:code});if(error)return toast(error.message);
-  $('joinAnotherCode').value='';await loadLeagues();
+  $('joinAnotherCode').value='';$('joinClubTool')?.classList.remove('open');await loadLeagues();
   const joinedId=data?.[0]?.league_id||data?.league_id;if(joinedId){currentLeague=myLeagues.find(x=>x.id===joinedId)||currentLeague;localStorage.setItem('paddle_active_league',joinedId)}
   renderLeagues();await loadCurrentLeague();toast('Joined club — your global rank stays the same.')
 }
 async function createLeague(){const name=$('newLeagueName').value.trim();if(!name)return toast('Give your club a name.');const {data,error}=await sb.rpc('create_league',{p_name:name,p_season_name:'Season 1'});if(error)return toast(error.message);$('newLeagueName').value='';currentLeague=data?.[0]||null;toast('Club created!');await loadLeagues()}
 async function joinLeague(){const code=$('joinCode').value.trim().toUpperCase();if(code.length<4)return toast('Enter the club code.');const {data,error}=await sb.rpc('join_league_by_code',{p_code:code});if(error)return toast(error.message);$('joinCode').value='';currentLeague=data?.[0]||null;toast('Joined club!');await loadLeagues()}
-async function loadCurrentLeague(){if(!currentLeague){$('noLeague').classList.remove('hidden');$('leagueDashboard').classList.add('hidden');$('currentLeagueChip').innerHTML='';members=[];matches=[];socialPosts=[],playMode="ranked",casualMatches=[];tournamentCache=[];renderActivityFeed();renderMatches();renderHomeGlobalRank();return}$('noLeague').classList.add('hidden');$('leagueDashboard').classList.remove('hidden');$('currentLeagueChip').innerHTML=`<div class="leagueChip"><div class="grow"><b>${escapeHtml(currentLeague.name)}</b><div class="sub">Join code <span class="code">${currentLeague.join_code}</span></div></div><button class="btn" onclick="copyCode()">Copy</button></div>`;const [mr,xr,rolesR]=await Promise.all([sb.rpc('get_league_members',{p_league_id:currentLeague.id}),sb.rpc('get_league_matches',{p_league_id:currentLeague.id}),sb.rpc('get_club_roles',{p_league_id:currentLeague.id})]);if(mr.error)return toast(mr.error.message);clubRoles=Object.fromEntries((rolesR.data||[]).map(x=>[x.user_id,x.club_role]));members=(mr.data||[]).map(p=>({...p,club_role:clubRoles[p.user_id]||'member'}));matches=xr.data||[];const cr=await sb.rpc('get_casual_matches',{p_league_id:currentLeague.id});casualMatches=cr.data||[];renderDashboard();await Promise.all([loadSocialPosts(),loadTournaments(),loadGlobalLeague()]);renderActivityFeed();renderMatches();renderRankList();loadModerationQueue();renderClubManagement();await loadPlayPosts();await heartbeatPresence();await loadOnlinePlayers();if(activeMatchCode)await refreshVerifiedMatch()}
+async function loadCurrentLeague(){if(!currentLeague){$('noLeague').classList.remove('hidden');$('leagueDashboard').classList.add('hidden');$('currentLeagueChip').innerHTML='';members=[];matches=[];socialPosts=[],playMode="ranked",casualMatches=[];tournamentCache=[];renderActivityFeed();renderMatches();renderHomeGlobalRank();return}$('noLeague').classList.add('hidden');$('leagueDashboard').classList.remove('hidden');$('currentLeagueChip').innerHTML=`<div class="leagueChip"><div class="grow"><b>${escapeHtml(currentLeague.name)}</b><div class="sub">Join code <span class="code">${currentLeague.join_code}</span></div></div><button class="btn" onclick="copyCode()">Copy</button></div>`;const [mr,xr,rolesR]=await Promise.all([sb.rpc('get_league_members',{p_league_id:currentLeague.id}),sb.rpc('get_league_matches',{p_league_id:currentLeague.id}),sb.rpc('get_club_roles',{p_league_id:currentLeague.id})]);if(mr.error)return toast(mr.error.message);clubRoles=Object.fromEntries((rolesR.data||[]).map(x=>[x.user_id,x.club_role]));members=(mr.data||[]).map(p=>({...p,club_role:clubRoles[p.user_id]||'member'}));matches=xr.data||[];renderLeagues();const cr=await sb.rpc('get_casual_matches',{p_league_id:currentLeague.id});casualMatches=cr.data||[];renderDashboard();await Promise.all([loadSocialPosts(),loadTournaments(),loadGlobalLeague()]);renderActivityFeed();renderMatches();renderRankList();loadModerationQueue();renderClubManagement();await loadPlayPosts();await heartbeatPresence();await loadOnlinePlayers();if(activeMatchCode)await refreshVerifiedMatch()}
 function copyCode(){navigator.clipboard?.writeText(currentLeague.join_code);toast(`Copied ${currentLeague.join_code}`)}
 
 function timeAgo(dateStr){

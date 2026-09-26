@@ -27,11 +27,13 @@ Advanced Stats V1: adds ranked win rate, recent form, Last 10, ELO gained/lost/n
 
 
 LEAGUE POLISH V1
-- More compact Paddle League header
-- Cleaner Season empty state
-- Expandable Season Points explanation
-- Tighter Players Near Your ELO and Global Leaderboard rows
-- Entire player rows remain tappable; repeated View Profile text removed
-- Equal ratings now say "Same ELO"
-- Tap your Global Rank card to jump to your leaderboard position
+- Compact League header and cleaner Season experience
+- Tighter ELO/leaderboard rows and jump-to-yourself shortcut
+
+CLUBS POLISH V1
+- Active club spotlight with Players / Matches / Leader
+- Quick Open Club, Copy Code, and Manage/Members actions
+- Other clubs moved into a compact list
+- Join/Create club forms are now expandable instead of always taking up the page
+- Shorter Clubs intro and cleaner hierarchy
 - No Supabase/database changes required
