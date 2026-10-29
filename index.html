@@ -10,10 +10,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <title>Paddle League</title>
+<script>if(location.pathname==='/privacy'||location.pathname==='/support'){document.documentElement.dataset.publicInfo=location.pathname.slice(1);document.title='Paddle League · '+(location.pathname==='/privacy'?'Privacy Policy':'Support');}</script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
 window.OneSignalDeferred = window.OneSignalDeferred || [];
 window.OneSignalDeferred.push(async function(OneSignal) {
+  if(document.documentElement.dataset.publicInfo)return;
   try {
     await OneSignal.init({
       appId: "1418ad78-7e8d-4833-ba12-2579bea70e29",
@@ -326,9 +328,55 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 .safetyDanger .btn{background:#34171e;border-color:#7a3342;color:#ffc5cf}
 .safetyStatus{font-size:11px;padding:11px 13px;background:#0b101b;border:1px solid #303749;border-radius:12px;line-height:1.5}
 
+/* Privacy & Support V1 */
+.psCardBody{padding:14px}.psMuted{font-size:12px;color:#a1a9ba;line-height:1.6;margin:0 0 12px}.psLinkBtn{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:13px 15px;background:linear-gradient(135deg,#7c3aed,#5556df);color:white;font-size:13px;font-weight:850}.psSmallLink{display:inline-block;color:#c4b5fd;text-decoration:underline;margin-top:14px;font-size:11px}.psCardBody textarea{width:100%;background:#090c13;border:1px solid #2a3041;color:#fff;border-radius:11px;padding:12px;resize:vertical;line-height:1.5;font-family:inherit}.psCardBody .field label{font-size:10px}.psCardBody .field input,.psCardBody .field select{font-size:13px}.psHelpStatus{font-size:12px;line-height:1.5;color:#9cebc1;margin-top:10px}.psHelpStatus.psError{color:#ffa7b4}.psRecent{margin-top:12px}.psRecentHeading{font-weight:800;font-size:12px;margin-bottom:8px}.psTicketRow{border:1px solid #282f40;background:#0b101b;border-radius:11px;padding:10px 12px;margin-top:7px}.psTicketRow b{font-size:12px}.psTicketRow small{display:block;margin-top:4px;color:#a1a9ba;font-size:10px}.psFaq details{padding:12px 0;border-bottom:1px solid #23283a}.psFaq details:last-child{border:0}.psFaq summary{font-weight:700;cursor:pointer;font-size:13px}.psFaq p{color:#a9b0c1;line-height:1.5;font-size:12px}
+.publicPage{display:none;max-width:780px;margin:0 auto;min-height:100vh;padding:24px 18px 65px}.publicNav{display:flex;justify-content:space-between;align-items:center;margin-bottom:34px}.publicBrand{font-weight:950;color:#fff;text-decoration:none;letter-spacing:.03em}.publicTag{font-size:10px;font-weight:900;border:1px solid #6248a9;color:#d6c4ff;border-radius:999px;padding:5px 10px}.publicHero{border:1px solid #29263a;background:linear-gradient(130deg,#18152d,#101320);padding:26px;border-radius:22px;margin-bottom:15px}.publicEyebrow{font-size:10px;font-weight:900;letter-spacing:.16em;color:#b2a0ff}.publicHero h1{font-size:32px;letter-spacing:-.04em;margin:9px 0}.publicHero p{line-height:1.6;color:#b6bdd0;margin:8px 0}.publicDate{font-size:12px;color:#9da6b8}.publicPaper{border:1px solid #292f3d;border-radius:21px;background:#10131d;padding:22px}.publicPaper h2{font-size:17px;margin:26px 0 9px;color:#eeeaff}.publicPaper h2:first-child{margin-top:0}.publicPaper h3{font-size:14px;margin:17px 0 5px;color:#e4dcff}.publicPaper p,.publicPaper li{line-height:1.7;font-size:13px;color:#bdc4d5}.publicPaper li{padding-bottom:6px}.publicPaper a,.publicFooter a{color:#cdb7ff}.publicPaper ul{padding-left:20px}.publicNotice{background:#19182b;border:1px solid #51466d;border-radius:12px;padding:12px}.publicAction{display:block;margin:15px 0;text-align:center;color:#fff!important;background:#6d4de1;padding:13px;border-radius:13px;font-weight:800;text-decoration:none}.publicFooter{display:flex;gap:22px;justify-content:center;padding:23px 0;font-size:12px}
+html[data-public-info] #authView,html[data-public-info] #appView,html[data-public-info] .trainingOverlay,html[data-public-info] .toast,html[data-public-info] .milestoneOverlay,html[data-public-info] .modOverlay{display:none!important}html[data-public-info] #publicInfoPage{display:block}html[data-public-info="privacy"] #publicSupport,html[data-public-info="support"] #publicPrivacy{display:none}
+
 </style>
 </head>
 <body>
+<div id="publicInfoPage" class="publicPage" aria-live="polite"><div id="publicPrivacy"><header class="publicNav"><a class="publicBrand" href="/">🎾 PADDLE LEAGUE</a><span class="publicTag">BETA</span></header>
+  <div class="publicHero"><div class="publicEyebrow">DATA &amp; PRIVACY</div><h1>Privacy Policy</h1><p>How Paddle League handles player information.</p><div class="publicDate">Last updated: October 29, 2026</div></div>
+  <div class="publicPaper">
+    <p>This policy describes the Paddle League web app and its beta features, including competitions, clubs, training logs, social posts, and court discovery.</p>
+    <h2>1. Information we collect</h2>
+    <ul><li><b>Account details:</b> your email address, display name, user ID, authentication credentials handled through our identity provider, and account preferences.</li>
+      <li><b>Sports activity:</b> leagues/clubs, participants, match scores, rankings, tournament participation, achievements, and game night activity.</li>
+      <li><b>Community information:</b> posts, comments, reactions, follows, reports, moderation records, and player blocking.</li>
+      <li><b>Private training data:</b> practice type, sport, session date, duration, focus, optional notes, weekly goals, and progress history. These do not change ELO and are not publicly displayed.</li>
+      <li><b>Support requests:</b> the issue category, subject, message, account email, and request status when you contact us.</li>
+      <li><b>Location and technical information:</b> when you choose “Near Me,” your browser can provide location coordinates for court searching. Our mapping and infrastructure services may process network, browser, device, and diagnostic information required to provide the app. Notification services may process device or push subscription identifiers if you enable alerts.</li>
+    </ul>
+    <h2>2. How information is used</h2>
+    <p>We use information to sign players in; show profiles, clubs, matches, and rankings; run tournaments; record private training; show courts; send optional notifications; respond to support and safety reports; prevent abuse; and maintain the reliability of the service. We do not currently sell personal information or display third-party advertising in Paddle League.</p>
+    <h2>3. Who can see information</h2>
+    <p>Your display name, public competitive statistics, club activity, and content you choose to share may be visible to other players, including members of your clubs. Private training logs, goals, support requests, and personal blocking lists are restricted to the account holder and authorized service administrators. Blocking does not remove already-recorded official results from leaderboards.</p>
+    <h2>4. Services we use</h2>
+    <p>Paddle League uses <b>Supabase</b> for accounts and stored app data, <b>Vercel</b> to host the web app, and <b>OneSignal</b> for optional push notifications. Court discovery uses OpenStreetMap-related mapping/geocoding services and Leaflet; externally hosted software libraries may be loaded by your browser. These services may process information necessary to operate their features. We assess service providers' privacy practices before wider release.</p>
+    <h2>5. Location and notifications</h2>
+    <p>Location access is optional and requested by your browser when you use nearby court search. You may instead search by a city or place. Court searches can send the location or search text to mapping services; precise live coordinates are not posted to other players as your profile location. Push notifications are optional; you can change notification preferences in Account or your device settings.</p>
+    <h2>6. Retention and account deletion</h2>
+    <p>We generally keep account, training, and app records while your account is active or while needed to provide the service. You can edit or remove your training sessions and goals. Under <b>Account → Safety &amp; Privacy → Account Deletion</b>, you can initiate deletion of your account. Accounts with shared matches, tournaments, or club ownership may require administrator review so other players' records are not accidentally erased. A request remains pending until completed; this beta process is still being refined. Necessary records may be preserved or de-identified where permitted or required by law.</p>
+    <h2>7. Your choices</h2>
+    <p>You can update your display name, training information, notification settings, and social follows; block players; and request account deletion within the app. You may contact support for questions about access, correction, or removal of information.</p>
+    <h2>8. Younger players</h2>
+    <p>Sports communities can include younger players. Parents or guardians can contact support about privacy concerns or a child's account. We are still reviewing age eligibility and child-safety requirements before public App Store release.</p>
+    <h2>9. Policy changes and contact</h2>
+    <p>We may update this policy when our app or providers change. We will update the date shown above. For questions, use the <a href="/support">Paddle League Support page</a> or the Support form under Account. A dedicated public support email will be added before public App Store submission.</p>
+  </div>
+  <footer class="publicFooter"><a href="/">Back to Paddle League</a><a href="/support">Support</a></footer></div><div id="publicSupport"><header class="publicNav"><a class="publicBrand" href="/">🎾 PADDLE LEAGUE</a><span class="publicTag">HELP</span></header>
+  <div class="publicHero"><div class="publicEyebrow">WE'RE HERE TO HELP</div><h1>Support Center</h1><p>Help with accounts, matches, rankings, training, and player safety.</p></div>
+  <div class="publicPaper"><h2>Contact Paddle League Support</h2><p>To send a private support request, sign in and open <b>Account → Privacy &amp; Support → Contact Support</b>. Choose a category, describe the issue, and press Send Support Request. The request is stored privately so the app administrator can review it.</p>
+   <p class="publicNotice">This is a beta support process. Support requests are not instant chat, and a response time has not yet been established. A dedicated public support email is being arranged for App Store launch.</p>
+   <a href="/?view=support" class="publicAction">Open Paddle League to Contact Support</a>
+   <h2>Common questions</h2><h3>How do I delete my account?</h3><p>Open Account → Safety &amp; Privacy → Account Deletion. Follow the confirmation steps. If shared club or match records are involved, your request may need manual review.</p>
+   <h3>How do I report abuse?</h3><p>Use the Report option on a player profile, post, or comment, where available, or submit a Safety report through the in-app support form. Block controls are available on other player profiles.</p>
+   <h3>Is training progress public?</h3><p>No. Training notes and personal goals are private. Official competitive results and rankings may be visible to other players.</p>
+   <h3>How do I change notification preferences?</h3><p>Open Account → Settings. You can switch notification categories on or off and adjust permissions on your phone.</p>
+   <p>For more details about stored information, read our <a href="/privacy">Privacy Policy</a>.</p>
+  </div>
+  <footer class="publicFooter"><a href="/">Back to Paddle League</a><a href="/privacy">Privacy Policy</a></footer></div></div>
 <div id="authView" class="auth">
   <div class="authBox">
     <div class="hero"><div class="brand"><div class="ball">🎾</div><div><b>PADDLE LEAGUE</b><small>GLOBAL RANKS • CLUBS</small></div></div><h1 style="margin-top:18px">Play. Earn ELO. Rank up.</h1><p class="muted">Everyone joins the global Paddle League automatically. Create or join clubs to play with friends.</p></div>
@@ -576,6 +624,34 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
   <div class="accountSectionTitle">Safety & Privacy</div>
   <div class="card"><div class="cardHead"><div><b>🛡️ Blocked Players</b><div class="sub">Manage people you don't want to interact with</div></div></div><div id="blockedPlayersList"><div class="empty">Loading blocked players…</div></div><div class="safetyNote" style="padding:0 14px 13px">Blocking removes follows and hides each other's social posts and Looking to Play invitations. Verified match results and public leaderboards may still include both players.</div></div>
   <div class="card safetyDanger"><div class="cardHead"><b>Account Deletion</b></div><div style="padding:14px"><div class="safetyNote" style="margin-top:0">Delete your Paddle League account and personal information. If your account has no shared match, tournament, or club history, deletion can finish immediately. Otherwise, a request is saved for administrator review so other players’ records are not erased. <b>Deletion is permanent once completed.</b></div><div id="deletionRequestStatus" class="safetyStatus" style="margin-top:11px">Checking request status…</div><button id="deletionRequestBtn" class="btn full" style="margin-top:10px" onclick="requestAccountDeletion()">Delete my account</button><button id="deletionCancelBtn" class="btn full hidden" style="margin-top:8px" onclick="cancelAccountDeletionRequest()">Cancel pending request</button></div></div>
+  <div class="accountSectionTitle" id="privacySupportSection">Privacy &amp; Support</div>
+  <div class="card" id="privacyPolicyAccountCard">
+    <div class="cardHead"><div><b>🔒 Privacy Policy</b><div class="sub">What we collect and how we protect your information</div></div><span class="pill">PUBLIC</span></div>
+    <div class="psCardBody"><p class="psMuted">Learn about your account data, training history, location searches, notifications, and privacy choices.</p>
+      <a href="/privacy" target="_blank" rel="noopener noreferrer" class="psLinkBtn">Read Privacy Policy ↗</a>
+    </div>
+  </div>
+  <div class="card" id="accountSupportCard">
+    <div class="cardHead"><div><b>💬 Contact Support</b><div class="sub">Send an issue, safety concern, or suggestion</div></div></div>
+    <div class="psCardBody">
+      <p class="psMuted">Your support request is private. We'll use your account email if a reply is needed. For inappropriate posts, you can also use the in-app Report option.</p>
+      <form id="psSupportForm" onsubmit="sendPaddleSupport(event)">
+        <div class="field" style="margin-top:0"><label for="psSupportCategory">Category</label><select id="psSupportCategory" required><option>App issue</option><option>Account &amp; privacy</option><option>Safety report</option><option>Feedback</option></select></div>
+        <div class="field"><label for="psSupportSubject">Subject</label><input id="psSupportSubject" maxlength="120" minlength="3" placeholder="What can we help with?" required></div>
+        <div class="field"><label for="psSupportMessage">Message</label><textarea id="psSupportMessage" maxlength="2000" minlength="10" rows="4" placeholder="Please describe what happened. Don't include passwords or private login codes." required></textarea></div>
+        <button id="psSupportSubmit" type="submit" class="btn primary full" style="margin-top:12px">Send Support Request</button>
+      </form>
+      <div id="psSupportStatus" class="psHelpStatus" role="status" aria-live="polite"></div>
+      <div id="psSupportRecent" class="psRecent"><div class="psMuted">Loading requests…</div></div>
+      <a href="/support" target="_blank" rel="noopener noreferrer" class="psSmallLink">Public Support Page ↗</a>
+    </div>
+  </div>
+  <div class="card" id="psFaqCard"><div class="cardHead"><b>❓ Quick Help</b></div><div class="psCardBody psFaq">
+    <details><summary>How do I delete my account?</summary><p>Go to Account → Safety &amp; Privacy → Account Deletion. Some accounts need additional review to preserve other players' match and club records.</p></details>
+    <details><summary>Are my training sessions private?</summary><p>Yes. Your training notes, durations, personal goals, and activity calendar are private to your account, not visible on public leaderboards.</p></details>
+    <details><summary>How do I report another player?</summary><p>Use the Report option on a post, comment or profile when available. You can also block a player from their profile or send a Safety report here.</p></details>
+  </div></div>
+
   <div class="accountSectionTitle">Account</div>
   <div class="card signoutCard" style="padding:14px"><button class="btn danger full" onclick="signOut()">Sign Out</button><div class="sub" style="text-align:center;margin-top:8px">You can sign back in anytime with your account.</div></div>
 </section>
@@ -798,7 +874,7 @@ function rankProgressData(elo){const i=rankIndex(elo),cur=tiers[i],next=tiers[i+
 function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class="rankIcon ${cls}" src="${rankImages[d.i]}" alt="${d.cur[0]} rank badge">`}
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
-async function boot(s){if(session?.user?.id!==s?.user?.id){trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice()}
+async function boot(s){if(session?.user?.id!==s?.user?.id){trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice();if(new URLSearchParams(location.search).get('view')==='support'){showPage('account');setTimeout(()=>$('accountSupportCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200)}}
 let milestoneQueue=[];
 function milestoneSnapshotKey(){return session?`pl_milestone_snapshot_${session.user.id}`:''}
 function showMilestone(m){
@@ -2109,9 +2185,39 @@ function renderTrainingTrends(){
   $('trainingTrendSummary').textContent=`Last 8 weeks: ${totalSessions} practice session${totalSessions===1?'':'s'} · ${trainingTimeText(totalMinutes)} logged court time. These totals include training logs only, not official matches.`;
 }
 
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus();renderBlockedPlayers();loadAccountDeletionRequest()}}
+
+// Private support requests, available from the Account page.
+async function loadPaddleSupportTickets(){
+ const list=$('psSupportRecent');if(!list||!session?.user?.id)return;
+ const {data,error}=await sb.from('support_tickets').select('id,category,subject,status,created_at').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(5);
+ if(error){list.textContent='Support history is temporarily unavailable.';return}
+ if(!data?.length){list.innerHTML='<div class="psMuted">No support requests yet.</div>';return}
+ list.innerHTML='<div class="psRecentHeading">Your recent requests</div>'+data.map(t=>'<div class="psTicketRow"><b>'+escapeHtml(t.subject)+'</b><small>'+escapeHtml(t.category)+' · '+escapeHtml(t.status)+' · '+new Date(t.created_at).toLocaleDateString()+'</small></div>').join('');
+}
+let psSupportSending=false;
+async function sendPaddleSupport(event){
+ event.preventDefault();if(psSupportSending||!session?.user?.id)return;
+ const category=$('psSupportCategory').value,subject=$('psSupportSubject').value.trim(),message=$('psSupportMessage').value.trim();
+ const status=$('psSupportStatus'),button=$('psSupportSubmit');
+ status.classList.remove('psError');status.textContent='';
+ if(subject.length<3||subject.length>120||message.length<10||message.length>2000){status.classList.add('psError');status.textContent='Enter a subject and a message of at least 10 characters.';return}
+ psSupportSending=true;button.disabled=true;button.textContent='Sending…';
+ try{
+  const {data,error}=await sb.rpc('submit_support_ticket',{p_category:category,p_subject:subject,p_message:message});
+  if(error)throw error;
+  $('psSupportSubject').value='';$('psSupportMessage').value='';
+  status.textContent='✓ Request sent (reference '+String(data).slice(0,8)+'). Your message is saved privately for administrator review.';
+  await loadPaddleSupportTickets();
+ }catch(err){status.classList.add('psError');status.textContent=err?.message||'Could not send your request. Try again.'}
+ finally{psSupportSending=false;button.disabled=false;button.textContent='Send Support Request'}
+}
+
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus();renderBlockedPlayers();loadAccountDeletionRequest();loadPaddleSupportTickets()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
-sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+if(!document.documentElement.dataset.publicInfo){
+  sb.auth.getSession().then(({data})=>boot(data.session));
+  sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
+  if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
 </script>
 </body></html>
