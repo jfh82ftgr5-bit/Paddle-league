@@ -1,26 +1,18 @@
-PADDLE LEAGUE — PRIVACY & SUPPORT V1
+PADDLE LEAGUE — ADMIN SUPPORT INBOX V1
 October 29, 2026
 
-INSTALL: Replace these five files at the root of the Paddle-league GitHub repo (main branch), then wait for Vercel auto-deploy.
+INSTALL: Replace the same five files in the Paddle-league GitHub repository root on branch main. Vercel redeploys automatically.
 
-FILES
-- index.html: Privacy & Support cards on Account page; support request form/history, public Privacy Policy and Support Center.
-- manifest.webmanifest
-- sw.js
-- vercel.json (SPA rewrite preserves /privacy and /support)
-- README.txt
+FILES: index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
 
-PUBLIC URLS after deployment:
-https://paddle-league2.vercel.app/privacy
-https://paddle-league2.vercel.app/support
+NEW FEATURE: Under Account > Privacy & Support, an Admin Support Inbox appears ONLY for a designated support administrator. Review up to 100 recent tickets, filter by status, search by subject/category, expand to see messages and contact email, and save status Open, Reviewing, or Closed. Status changes appear in the sender's Support History.
 
-IN-APP: Account > Privacy & Support. Signed-in users can submit support tickets.
-The support_tickets database and restricted submit_support_ticket function are already installed in Supabase. Admin must check Supabase support_tickets for incoming reports.
+SECURITY: Support admin membership is managed in Supabase public.support_admins (not by display name or club ownership). Exactly one existing account was granted access, based on the previously confirmed beta test ticket. No client permission to add administrators. Ticket privacy is enforced by RLS; status updates are applied by the restricted Supabase RPC support_admin_set_ticket_status.
 
-IMPORTANT BEFORE APP STORE SUBMISSION:
-- Have a parent/guardian or responsible adult create a dedicated public support email; publish verified contact information on the support page. Do NOT publicly post a personal address/phone.
-- Review and finalize the beta privacy policy with the legal account holder and validate actual data practices, retention, age eligibility, and Apple's privacy nutrition labels.
-- Test the support form, public links, and all app features.
-- Account deletion with shared histories still requires a real administrator workflow.
+TEST:
+1) Upload all 5 files to GitHub, open Paddle League, Account > Privacy & Support.
+2) Admin Support Inbox should appear below Contact Support. There should be 1 open ticket marked 'Test'.
+3) Expand it, choose Reviewing, Save status. Confirm the counters and your own Support History update.
+4) Open in another player's account; admin card should NOT appear and the backend must deny reading other players' tickets.
 
-TEST: Deploy; open Account; verify privacy link/support form; sign out and open /privacy and /support on Safari; submit ONE test support ticket (no sensitive details); confirm it appears in Supabase support_tickets.
+LIMITS: Inbox handles status only, not reply emails. It currently shows the latest 100 tickets and requires manual refresh. Admins must handle sensitive requests carefully. No actual emails are sent by changing status.

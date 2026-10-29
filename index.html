@@ -333,6 +333,39 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 .publicPage{display:none;max-width:780px;margin:0 auto;min-height:100vh;padding:24px 18px 65px}.publicNav{display:flex;justify-content:space-between;align-items:center;margin-bottom:34px}.publicBrand{font-weight:950;color:#fff;text-decoration:none;letter-spacing:.03em}.publicTag{font-size:10px;font-weight:900;border:1px solid #6248a9;color:#d6c4ff;border-radius:999px;padding:5px 10px}.publicHero{border:1px solid #29263a;background:linear-gradient(130deg,#18152d,#101320);padding:26px;border-radius:22px;margin-bottom:15px}.publicEyebrow{font-size:10px;font-weight:900;letter-spacing:.16em;color:#b2a0ff}.publicHero h1{font-size:32px;letter-spacing:-.04em;margin:9px 0}.publicHero p{line-height:1.6;color:#b6bdd0;margin:8px 0}.publicDate{font-size:12px;color:#9da6b8}.publicPaper{border:1px solid #292f3d;border-radius:21px;background:#10131d;padding:22px}.publicPaper h2{font-size:17px;margin:26px 0 9px;color:#eeeaff}.publicPaper h2:first-child{margin-top:0}.publicPaper h3{font-size:14px;margin:17px 0 5px;color:#e4dcff}.publicPaper p,.publicPaper li{line-height:1.7;font-size:13px;color:#bdc4d5}.publicPaper li{padding-bottom:6px}.publicPaper a,.publicFooter a{color:#cdb7ff}.publicPaper ul{padding-left:20px}.publicNotice{background:#19182b;border:1px solid #51466d;border-radius:12px;padding:12px}.publicAction{display:block;margin:15px 0;text-align:center;color:#fff!important;background:#6d4de1;padding:13px;border-radius:13px;font-weight:800;text-decoration:none}.publicFooter{display:flex;gap:22px;justify-content:center;padding:23px 0;font-size:12px}
 html[data-public-info] #authView,html[data-public-info] #appView,html[data-public-info] .trainingOverlay,html[data-public-info] .toast,html[data-public-info] .milestoneOverlay,html[data-public-info] .modOverlay{display:none!important}html[data-public-info] #publicInfoPage{display:block}html[data-public-info="privacy"] #publicSupport,html[data-public-info="support"] #publicPrivacy{display:none}
 
+
+/* Admin Support Inbox V1 — accessible to explicitly authorized support administrators only */
+.asSection{padding:13px 14px 14px}
+.asIntro{font-size:11px;color:#9ba6ba;line-height:1.6;margin:0 0 11px}
+.asCounters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:9px 0 15px}
+.asCounter{background:#0a101c;border:1px solid #2c3345;border-radius:12px;text-align:center;padding:10px 4px}
+.asCounter b{display:block;font-size:18px;color:#eee9ff}
+.asCounter span{font-size:9px;color:#a7b1c4;letter-spacing:.01em}
+.asFilters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.asFilter{background:#111624;color:#aab3c5;border:1px solid #2a3143;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:850;flex:1}
+.asFilter.active{background:#38255c;color:#fff;border-color:#9669ef}
+.asSearch{margin-bottom:12px}
+.asSearch input{width:100%;background:#080d16;border:1px solid #2c3346;color:#fff;border-radius:11px;padding:12px;font-size:12px}
+.asTicket{border:1px solid #2a3245;background:#0b101b;border-radius:14px;margin-top:9px;overflow:hidden}
+.asTicket summary{list-style:none;padding:12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px}
+.asTicket summary::-webkit-details-marker{display:none}
+.asTicket summary:after{content:'⌄';font-weight:900;color:#9aa4b8}
+.asTicket[open] summary:after{content:'⌃'}
+.asTicketHead{flex:1;min-width:0}
+.asTicketHead b{font-size:12px;overflow-wrap:anywhere}
+.asTicketHead small{display:block;font-size:10px;color:#aab4c6;line-height:1.45;margin-top:4px}
+.asStatus{font-size:9px;font-weight:900;padding:5px 8px;border-radius:99px;white-space:nowrap;border:1px solid #4a4e69;background:#20243a;color:#c8cded}
+.asStatus.open{color:#91ddff;background:#0b2738;border-color:#276387}
+.asStatus.reviewing{color:#ffdb85;background:#312714;border-color:#8b702b}
+.asStatus.closed{color:#a0efbe;background:#123024;border-color:#397e58}
+.asTicketBody{border-top:1px solid #293042;padding:12px;font-size:11px;color:#cad3e4}
+.asTicketMessage{line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;padding:11px;border-radius:10px;background:#080d15;border:1px solid #252d3d;margin:11px 0;color:#f0f1f8}
+.asMeta{color:#aab4c6;line-height:1.6;overflow-wrap:anywhere}
+.asUpdate{display:flex;gap:8px;align-items:center;margin-top:10px}
+.asUpdate select{flex:1;min-width:0;padding:10px;border-radius:10px;background:#141b29;border:1px solid #33394d;color:#fff;font-size:12px}
+.asUpdate button{white-space:nowrap}
+@media(max-width:400px){.asFilters{gap:4px}.asFilter{padding:7px 7px;font-size:10px}.asTicket summary{gap:7px}}
+
 </style>
 </head>
 <body>
@@ -646,6 +679,23 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
       <a href="/support" target="_blank" rel="noopener noreferrer" class="psSmallLink">Public Support Page ↗</a>
     </div>
   </div>
+
+  <div class="card hidden" id="adminSupportInboxCard" aria-label="Administrator support inbox">
+    <div class="cardHead"><div><b>🛡️ Admin Support Inbox</b><div class="sub">Private support requests · administrator only</div></div><button type="button" class="btn" onclick="loadAdminSupportInbox(true)">↻ Refresh</button></div>
+    <div class="asSection">
+      <p class="asIntro">Review player issues and safety reports. Only approved app support administrators can read these tickets. Status updates appear in the sender's Support History.</p>
+      <div class="asCounters" id="adminSupportCounters"></div>
+      <div class="asFilters" id="adminSupportFilters">
+        <button class="asFilter active" data-filter="all" onclick="setAdminSupportFilter('all')">All</button>
+        <button class="asFilter" data-filter="open" onclick="setAdminSupportFilter('open')">Open</button>
+        <button class="asFilter" data-filter="reviewing" onclick="setAdminSupportFilter('reviewing')">Reviewing</button>
+        <button class="asFilter" data-filter="closed" onclick="setAdminSupportFilter('closed')">Closed</button>
+      </div>
+      <div class="asSearch"><input id="adminSupportSearch" type="search" maxlength="120" autocomplete="off" placeholder="Search ticket subject or category" oninput="searchAdminSupportInbox(this.value)" aria-label="Search support tickets"></div>
+      <div id="adminSupportList" aria-live="polite"><div class="empty">Checking support access…</div></div>
+      <div class="sub" style="margin-top:12px">Shows the 100 most recent tickets. Ticket messages are private; do not share screenshots containing names or emails. Reply-by-email is not yet built.</div>
+    </div>
+  </div>
   <div class="card" id="psFaqCard"><div class="cardHead"><b>❓ Quick Help</b></div><div class="psCardBody psFaq">
     <details><summary>How do I delete my account?</summary><p>Go to Account → Safety &amp; Privacy → Account Deletion. Some accounts need additional review to preserve other players' match and club records.</p></details>
     <details><summary>Are my training sessions private?</summary><p>Yes. Your training notes, durations, personal goals, and activity calendar are private to your account, not visible on public leaderboards.</p></details>
@@ -874,7 +924,7 @@ function rankProgressData(elo){const i=rankIndex(elo),cur=tiers[i],next=tiers[i+
 function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class="rankIcon ${cls}" src="${rankImages[d.i]}" alt="${d.cur[0]} rank badge">`}
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
-async function boot(s){if(session?.user?.id!==s?.user?.id){trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice();if(new URLSearchParams(location.search).get('view')==='support'){showPage('account');setTimeout(()=>$('accountSupportCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200)}}
+async function boot(s){if(session?.user?.id!==s?.user?.id){adminSupportAuthorized=false;adminSupportTickets=[];adminSupportFilter='all';adminSupportSearch='';$('adminSupportInboxCard')?.classList.add('hidden');trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice();if(new URLSearchParams(location.search).get('view')==='support'){showPage('account');setTimeout(()=>$('accountSupportCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200)}}
 let milestoneQueue=[];
 function milestoneSnapshotKey(){return session?`pl_milestone_snapshot_${session.user.id}`:''}
 function showMilestone(m){
@@ -2212,7 +2262,79 @@ async function sendPaddleSupport(event){
  finally{psSupportSending=false;button.disabled=false;button.textContent='Send Support Request'}
 }
 
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus();renderBlockedPlayers();loadAccountDeletionRequest();loadPaddleSupportTickets()}}
+
+// Administrator support inbox. The UI check is convenience only; backend RLS and RPC enforce authorization.
+let adminSupportAuthorized=false, adminSupportTickets=[],adminSupportFilter='all',adminSupportSearch='';
+let adminSupportUpdating=false,adminSupportChecking=false;
+async function loadAdminSupportInbox(force=false){
+ if(!session?.user?.id)return;
+ const card=$('adminSupportInboxCard');if(!card)return;
+ if(adminSupportChecking)return;
+ adminSupportChecking=true;
+ try{
+  // Administrators are assigned in Supabase; ordinary club admins are NOT support admins.
+  const {data:membership,error:accessError}=await sb.from('support_admins')
+   .select('user_id').eq('user_id',session.user.id).maybeSingle();
+  if(accessError||!membership){
+   adminSupportAuthorized=false;adminSupportTickets=[];card.classList.add('hidden');return;
+  }
+  adminSupportAuthorized=true;card.classList.remove('hidden');
+  const el=$('adminSupportList');if(el)el.innerHTML='<div class="empty">Loading support requests…</div>';
+  const {data,error}=await sb.from('support_tickets')
+   .select('id,user_id,contact_email,category,subject,message,status,created_at,updated_at')
+   .order('created_at',{ascending:false}).limit(100);
+  if(error){if(el)el.textContent='Could not load support inbox: '+error.message;return;}
+  adminSupportTickets=data||[];
+  renderAdminSupportInbox();
+ }catch(err){const el=$('adminSupportList');if(el)el.textContent='Support inbox temporarily unavailable.';console.warn('Support inbox failed',err?.message||err);}
+ finally{adminSupportChecking=false;}
+}
+function setAdminSupportFilter(filter){
+ if(!['all','open','reviewing','closed'].includes(filter))return;
+ adminSupportFilter=filter;renderAdminSupportInbox();
+}
+function searchAdminSupportInbox(value){adminSupportSearch=String(value||'').trim().slice(0,120).toLowerCase();renderAdminSupportInbox();}
+function renderAdminSupportInbox(){
+ if(!adminSupportAuthorized)return;
+ const list=$('adminSupportList');if(!list)return;
+ document.querySelectorAll('#adminSupportFilters .asFilter').forEach(b=>b.classList.toggle('active',b.dataset.filter===adminSupportFilter));
+ const all=adminSupportTickets||[];
+ const ct={open:all.filter(x=>x.status==='open').length,reviewing:all.filter(x=>x.status==='reviewing').length,closed:all.filter(x=>x.status==='closed').length};
+ $('adminSupportCounters').innerHTML='<div class="asCounter"><b>'+ct.open+'</b><span>Open</span></div><div class="asCounter"><b>'+ct.reviewing+'</b><span>Reviewing</span></div><div class="asCounter"><b>'+ct.closed+'</b><span>Closed</span></div>';
+ const subset=all.filter(t=>(adminSupportFilter==='all'||t.status===adminSupportFilter)&&(!adminSupportSearch||(t.subject+' '+t.category+' '+t.id).toLowerCase().includes(adminSupportSearch)));
+ if(!subset.length){list.innerHTML='<div class="empty">No support tickets match this filter.</div>';return;}
+ list.innerHTML=subset.map(t=>{
+  const validId=/^[0-9a-f-]{36}$/i.test(t.id)?t.id:'';
+  if(!validId)return '';
+  const date=new Date(t.created_at).toLocaleString();
+  const state=['open','reviewing','closed'].includes(t.status)?t.status:'open';
+  return '<details class="asTicket" data-ticket="'+validId+'"><summary><div class="asTicketHead"><b>'+escapeHtml(t.subject)+'</b><small>'+escapeHtml(t.category)+' · '+escapeHtml(date)+'</small></div><span class="asStatus '+state+'">'+(state==='open'?'Open':state==='reviewing'?'Reviewing':'Closed')+'</span></summary>'+
+   '<div class="asTicketBody"><div class="asMeta"><b>Sender:</b> '+escapeHtml(t.contact_email)+'<br><b>Ticket:</b> '+escapeHtml(validId.slice(0,8))+'<br><b>Updated:</b> '+escapeHtml(new Date(t.updated_at||t.created_at).toLocaleString())+'</div>'+
+   '<div class="asTicketMessage">'+escapeHtml(t.message)+'</div>'+
+   '<label class="sub" for="adminStatus_'+validId+'">Set request status</label><div class="asUpdate"><select id="adminStatus_'+validId+'" aria-label="Request status">'+['open','reviewing','closed'].map(s=>'<option value="'+s+'" '+(s===state?'selected':'')+'>'+(s==='open'?'Open':s==='reviewing'?'Reviewing':'Closed')+'</option>').join('')+'</select><button class="btn primary" onclick="saveAdminSupportStatus(\''+validId+'\')">Save status</button></div></div></details>';
+ }).join('');
+}
+async function saveAdminSupportStatus(id){
+ if(!adminSupportAuthorized||adminSupportUpdating||!session?.user?.id)return;
+ const ticket=adminSupportTickets.find(t=>t.id===id);const field=$('adminStatus_'+id);
+ if(!ticket||!field)return;
+ const status=field.value;if(!['open','reviewing','closed'].includes(status))return;
+ if(status===ticket.status){toast('Status is already '+status);return;}
+ adminSupportUpdating=true;field.disabled=true;
+ try{
+  const {data,error}=await sb.rpc('support_admin_set_ticket_status',{p_ticket_id:id,p_status:status});
+  if(error)throw error;
+  ticket.status=data;ticket.updated_at=new Date().toISOString();
+  const filteredStatus=adminSupportFilter; // Keep the filter but re-render updated counters.
+  renderAdminSupportInbox();
+  toast('Support request marked '+data);
+  // Senders see updated status via their existing Support History.
+  await loadPaddleSupportTickets();
+ }catch(e){field.disabled=false;toast('Could not update request: '+(e?.message||'Try again'));}
+ finally{adminSupportUpdating=false;}
+}
+
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus();renderBlockedPlayers();loadAccountDeletionRequest();loadPaddleSupportTickets();loadAdminSupportInbox()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 if(!document.documentElement.dataset.publicInfo){
   sb.auth.getSession().then(({data})=>boot(data.session));
