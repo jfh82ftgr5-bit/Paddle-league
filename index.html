@@ -239,6 +239,41 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
   .clubQuickStat b{font-size:13px}
 }
 
+/* Training Sessions V1 — private activity log */
+.trainingHome .cardHead{gap:8px}
+.trainingHome .cardHead .sub{margin-top:4px}
+.trainingWeekStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:12px 12px 6px}
+.trainingMetric{background:#0b0f17;border:1px solid #282e40;border-radius:13px;padding:10px 9px;min-width:0}
+.trainingMetric b{display:block;font-size:19px;font-weight:950;white-space:nowrap}
+.trainingMetric small{display:block;font-size:9px;color:#8f98ad;margin-top:4px}
+.trainingChart{display:flex;gap:7px;align-items:end;justify-content:space-between;padding:9px 13px 10px;height:95px}
+.trainingDay{min-width:0;flex:1;display:flex;flex-direction:column;justify-content:end;align-items:center;height:100%;gap:4px}
+.trainingDayTrack{height:54px;display:flex;align-items:end;width:100%;justify-content:center;background:#0a0e15;border-radius:7px}
+.trainingDayBar{width:70%;min-height:0;background:linear-gradient(180deg,#a78bfa,#6d5cf2);border-radius:5px 5px 3px 3px}
+.trainingDay small{font-size:9px;color:#8e95a8}
+.trainingRecent{padding:2px 14px 13px;color:#8e95a8;font-size:11px}
+.trainingQuickRow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 13px 12px}
+.trainingQuickRow .sub{flex:1}
+.trainingOverlay{position:fixed;inset:0;z-index:90;background:#05070df4;padding:calc(12px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.trainingShell{max-width:600px;margin:0 auto;border:1px solid #30374a;background:#0e121d;border-radius:22px;overflow:hidden;box-shadow:0 20px 60px #000b}
+.trainingTop{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;background:#121725f4;padding:14px;border-bottom:1px solid #30374a;backdrop-filter:blur(12px)}
+.trainingContent{padding:14px}
+.trainingContent .field{margin-top:12px}
+.trainingContent textarea{width:100%;background:#090c13;border:1px solid #2a3041;border-radius:11px;color:#fff;padding:12px;min-height:70px;font:inherit;resize:vertical}
+.trainingContent input,.trainingContent select{font-size:16px}
+.trainingFormGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.trainingFormGrid .field{min-width:0}
+.trainingTip{padding:10px 12px;background:#101827;border:1px solid #29364b;border-radius:12px;color:#afbdd1;font-size:11px;line-height:1.45;margin:12px 0 0}
+.trainingLogRow{display:flex;gap:10px;align-items:flex-start;border-top:1px solid #272d3d;padding:12px 0}
+.trainingLogRow:first-child{border:0}
+.trainingLogMark{width:37px;height:37px;border-radius:11px;flex:0 0 auto;background:#21253a;display:grid;place-items:center;font-size:18px}
+.trainingLogRow .grow{min-width:0}
+.trainingLogNote{font-size:10px;color:#afb6c4;margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.trainingLogBtns{display:flex;gap:5px;margin-top:7px}
+.trainingLogBtns button{font-size:10px;padding:6px 9px}
+.trainingSectionTitle{font-size:13px;font-weight:900;margin:15px 0 8px}
+@media(max-width:380px){.trainingWeekStats{gap:5px;padding:10px 9px 5px}.trainingMetric{padding:9px 6px}.trainingMetric b{font-size:16px}}
+
 </style>
 </head>
 <body>
@@ -280,7 +315,13 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 </div>
 <main>
 <section id="home" class="page on">
-  <div id="homeGlobalRank" class="card" style="padding:14px"></div>
+   <div class="card trainingHome" id="trainingHome">
+     <div class="cardHead"><div><b>📈 Your Training</b><div class="sub">Every session counts — even when you aren't competing.</div></div><button class="btn primary" onclick="openTrainingLog()">＋ Log Activity</button></div>
+     <div class="trainingWeekStats"><div class="trainingMetric"><b id="trainingWeekSessions">—</b><small>Sessions this week</small></div><div class="trainingMetric"><b id="trainingWeekTime">—</b><small>Court time this week</small></div><div class="trainingMetric"><b id="trainingTotalSessions">—</b><small>Training sessions logged</small></div></div>
+     <div id="trainingWeekChart" class="trainingChart" aria-label="Training minutes for each day this week"></div>
+     <div class="trainingQuickRow"><div class="sub" id="trainingLastSession">Start your training log with your first session.</div><button class="btn" onclick="openTrainingLog('history')">History ›</button></div>
+   </div>
+   <div id="homeGlobalRank" class="card" style="padding:14px"></div>
   <div class="hero homeHero"><h1 id="welcome">Your Club</h1><p class="muted">Your club hub for matches, posts, tournaments, and friends.</p><div id="currentLeagueChip"></div></div>
   <div id="noLeague" class="card" style="padding:16px"><h2 style="margin:0">Get started</h2><div class="field"><label>Create club</label><input id="newLeagueName" placeholder="Sunnyside Paddle Club"></div><button class="btn primary full" style="margin-top:10px" onclick="createLeague()">Create Club</button><div class="field" style="margin-top:18px"><label>Join with code</label><input id="joinCode" class="code" maxlength="6" placeholder="ABC123"></div><button class="btn full" style="margin-top:10px" onclick="joinLeague()">Join Club</button></div>
   <div id="leagueDashboard" class="hidden">
@@ -437,6 +478,9 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 
   <div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div>
 
+  <div class="accountSectionTitle">Training & Progress</div>
+  <div class="card" style="padding:14px"><div class="row" style="padding:0"><div class="settingsIcon">📈</div><div class="grow"><b>My Training Log</b><div class="sub">Your practice sessions, court time, and progress. Private to you.</div></div><button class="btn" onclick="openTrainingLog('history')">View</button></div></div>
+
   <div class="accountSectionTitle">Advanced Stats</div>
   <div id="accountAdvancedStats"><div class="card"><div class="empty">Loading advanced stats…</div></div></div>
 
@@ -481,6 +525,26 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 </section>
 </main>
 <nav class="bottom"><button class="on" data-page="home"><span><svg class="navIcon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-7h6v7"/></svg></span>Home</button><button data-page="globalLeague"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></span>League</button><button data-page="leagues"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20c.4-4 2.4-6 5.5-6s5.1 2 5.5 6M14 15c3.5-.5 5.7 1.2 6.2 4.5"/></svg></span>Clubs</button><button data-page="courts"><span><svg class="navIcon" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Courts</button><button data-page="matches"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7c3.5 3.5 9.1 3.5 12.6 0M5.7 18.3c3.5-3.5 9.1-3.5 12.6 0"/></svg></span>Matches</button><button data-page="account"><span><svg class="navIcon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.7-4.3 3.2-6.5 7.5-6.5s6.8 2.2 7.5 6.5"/></svg></span>Account</button></nav>
+</div>
+<div id="trainingOverlay" class="trainingOverlay hiddenImportant" onclick="closeTrainingLog(event)">
+  <div class="trainingShell" onclick="event.stopPropagation()">
+    <div class="trainingTop"><div><b style="font-size:18px">Log Training</b><div class="sub">Your private training journal</div></div><button class="btn" onclick="closeTrainingLog()" aria-label="Close training log">✕</button></div>
+    <div class="trainingContent">
+      <form id="trainingForm" onsubmit="saveTrainingSession(event)">
+        <div class="trainingFormGrid">
+          <div class="field" style="margin-top:0"><label for="trainSport">Sport</label><select id="trainSport" required><option>Tennis</option><option selected>Pickleball</option><option>Padel</option><option>Paddle Tennis</option></select></div>
+          <div class="field" style="margin-top:0"><label for="trainType">Session type</label><select id="trainType" required><option>Practice</option><option>Drills</option><option>Training with friends</option></select></div>
+          <div class="field"><label for="trainDuration">Minutes</label><input id="trainDuration" type="number" inputmode="numeric" min="1" max="480" step="1" value="60" required></div>
+          <div class="field"><label for="trainDate">Date</label><input id="trainDate" type="date" required></div>
+        </div>
+        <div class="field"><label for="trainFocus">Training focus</label><select id="trainFocus"><option>Serving</option><option>Forehand</option><option>Backhand</option><option>Footwork</option><option>Consistency</option><option>Match strategy</option><option>Fitness & conditioning</option><option>Other</option></select></div>
+        <div class="field"><label for="trainNotes">Notes (optional)</label><textarea id="trainNotes" maxlength="1000" placeholder="What did you work on? What improved?"></textarea></div>
+        <div class="trainingTip">🔒 Your training sessions are private. They track practice time only — no ELO, ranked wins, or match records are affected.</div>
+        <div class="actions"><button type="button" class="btn" onclick="resetTrainingForm()">Clear</button><button id="trainSaveBtn" type="submit" class="btn primary">Save Session</button></div>
+      </form>
+      <div class="trainingSectionTitle">Recent sessions</div><div id="trainingLogList"><div class="empty">Loading your training log…</div></div>
+    </div>
+  </div>
 </div>
 <div id="toast" class="toast"></div>
 <div id="milestoneOverlay" class="milestoneOverlay hiddenImportant"><div class="milestoneCard"><div id="milestoneIcon" class="milestoneIcon">🏆</div><div class="milestoneTag">MILESTONE UNLOCKED</div><h2 id="milestoneTitle">Moving Up!</h2><p id="milestoneBody"></p><button class="btn primary full" onclick="closeMilestone()">Let’s go 🔥</button></div></div>
@@ -658,7 +722,7 @@ function rankProgressData(elo){const i=rankIndex(elo),cur=tiers[i],next=tiers[i+
 function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class="rankIcon ${cls}" src="${rankImages[d.i]}" alt="${d.cur[0]} rank badge">`}
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
-async function boot(s){session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice()}
+async function boot(s){session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice()}
 let milestoneQueue=[];
 function milestoneSnapshotKey(){return session?`pl_milestone_snapshot_${session.user.id}`:''}
 function showMilestone(m){
@@ -1680,6 +1744,85 @@ function renderGameNight(){const org=activeGameNight.organizer_id===session.user
 async function saveGnScore(id){const a=Number($('gn1_'+id).value),b=Number($('gn2_'+id).value);if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0||a===b)return toast('Enter a valid non-tied score');const {error}=await sb.from('game_night_games').update({score1:a,score2:b}).eq('id',id);if(error)return toast(error.message);await loadGameNights()}
 async function finishGameNight(){if(!confirm('Finish this Game Night and lock the final standings?'))return;const {error}=await sb.from('game_nights').update({status:'complete',completed_at:new Date().toISOString()}).eq('id',activeGameNight.id);if(error)return toast(error.message);toast('Game Night complete 🏆');await loadGameNights()}
 async function cancelGameNight(){if(!confirm('Cancel this Game Night?'))return;const {error}=await sb.from('game_nights').update({status:'cancelled'}).eq('id',activeGameNight.id);if(error)return toast(error.message);activeGameNight=null;await loadGameNights()}
+
+
+/* Training Sessions V1 — uses the existing private Supabase training_sessions table. */
+let trainingSessions=[],trainingEditingId=null,trainingBusy=false,trainingLoading=false;
+function trainingLocalDate(d=new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function trainingWeekStart(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return trainingLocalDate(d)}
+function trainingDisplayDate(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return '';const [y,m,d]=v.split('-');return `${m}/${d}/${y}`}
+function trainingTimeText(minutes){const h=Math.floor(minutes/60),m=minutes%60;return h?`${h}h${m?' '+m+'m':''}`:`${m}m`}
+function resetTrainingForm(){trainingEditingId=null;$('trainingForm').reset();$('trainDate').value=trainingLocalDate();$('trainDate').max=trainingLocalDate();$('trainSaveBtn').textContent='Save Session';$('trainSport').value='Pickleball';$('trainDuration').value='60';$('trainFocus').value='Serving'}
+function openTrainingLog(view='form'){
+  if(!session)return toast('Sign in to log training');
+  $('trainingOverlay').classList.remove('hiddenImportant');
+  if(!trainingEditingId)resetTrainingForm();
+  loadTrainingSessions();
+  if(view==='history')setTimeout(()=>{$('trainingLogList')?.scrollIntoView({behavior:'smooth',block:'center'})},80);
+}
+function closeTrainingLog(e){if(e&&e.target!==$('trainingOverlay'))return;$('trainingOverlay').classList.add('hiddenImportant');resetTrainingForm()}
+async function loadTrainingSessions(){
+  if(!session||trainingLoading)return;
+  const uid=session.user.id;trainingLoading=true;
+  try{
+    const {data,error}=await sb.from('training_sessions').select('id,user_id,sport,activity_type,duration_minutes,focus,notes,session_date,created_at').eq('user_id',uid).order('session_date',{ascending:false}).order('created_at',{ascending:false}).limit(500);
+    if(error)throw error;
+    if(session?.user.id!==uid)return;
+    trainingSessions=data||[];
+    renderTrainingDashboard();renderTrainingLog();
+  }catch(err){console.error('Training load failed',err);if($('trainingLastSession'))$('trainingLastSession').textContent='Training could not load. Tap History to retry.';if($('trainingLogList'))$('trainingLogList').innerHTML='<div class="empty">Could not load training. Please try again.</div>';toast('Training load failed: '+(err.message||'Try again'))}
+  finally{trainingLoading=false}
+}
+function renderTrainingDashboard(){
+  if(!$('trainingWeekSessions'))return;
+  const start=trainingWeekStart(),today=trainingLocalDate();
+  const week=trainingSessions.filter(x=>x.session_date>=start&&x.session_date<=today),mins=week.reduce((n,x)=>n+Number(x.duration_minutes||0),0);
+  $('trainingWeekSessions').textContent=week.length;
+  $('trainingWeekTime').textContent=trainingTimeText(mins);
+  $('trainingTotalSessions').textContent=trainingSessions.length;
+  const chart=$('trainingWeekChart'),monday=new Date(start+'T12:00:00'),daily=[];
+  for(let i=0;i<7;i++){let d=new Date(monday);d.setDate(monday.getDate()+i);const key=trainingLocalDate(d);daily.push({label:['M','T','W','T','F','S','S'][i],date:key,mins:week.filter(x=>x.session_date===key).reduce((n,x)=>n+Number(x.duration_minutes||0),0)})}
+  const high=Math.max(60,...daily.map(x=>x.mins));
+  chart.innerHTML=daily.map(x=>`<div class="trainingDay" title="${x.date}: ${x.mins} minutes"><div class="trainingDayTrack"><div class="trainingDayBar" style="height:${x.mins?Math.max(5,Math.round(x.mins/high*54)):0}px"></div></div><small>${x.label}</small></div>`).join('');
+  const last=trainingSessions[0];$('trainingLastSession').textContent=last?`Latest: ${last.sport} • ${last.focus} • ${trainingTimeText(last.duration_minutes)}`:'No sessions yet. Log your first practice!';
+}
+function renderTrainingLog(){
+  const el=$('trainingLogList');if(!el)return;
+  if(!trainingSessions.length){el.innerHTML='<div class="empty">No sessions recorded yet. Your first practice will appear here.</div>';return}
+  el.innerHTML=trainingSessions.slice(0,30).map(x=>`<div class="trainingLogRow"><div class="trainingLogMark">${x.sport==='Pickleball'?'🎾':x.sport==='Padel'?'🏓':'🎾'}</div><div class="grow"><b>${escapeHtml(x.sport)} · ${escapeHtml(x.activity_type)}</b><div class="sub">${trainingDisplayDate(x.session_date)} · ${trainingTimeText(x.duration_minutes)} · ${escapeHtml(x.focus)}</div>${x.notes?`<div class="trainingLogNote">${escapeHtml(x.notes)}</div>`:''}<div class="trainingLogBtns"><button class="btn" onclick="editTrainingSession('${x.id}')">Edit</button><button class="btn danger" onclick="deleteTrainingSession('${x.id}')">Delete</button></div></div></div>`).join('');
+}
+function editTrainingSession(id){
+  const x=trainingSessions.find(t=>t.id===id);if(!x)return;
+  trainingEditingId=id;
+  $('trainSport').value=x.sport;$('trainType').value=x.activity_type;$('trainDuration').value=x.duration_minutes;$('trainDate').value=x.session_date;
+  const allowed=[...$('trainFocus').options].map(o=>o.value);if(!allowed.includes(x.focus))$('trainFocus').add(new Option(x.focus,x.focus));
+  $('trainFocus').value=x.focus;$('trainNotes').value=x.notes||'';$('trainSaveBtn').textContent='Update Session';$('trainingForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function saveTrainingSession(e){
+  e.preventDefault();if(trainingBusy||!session)return;
+  const duration=Number($('trainDuration').value),day=$('trainDate').value;
+  if(!Number.isInteger(duration)||duration<1||duration>480)return toast('Duration must be 1–480 minutes');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||day>trainingLocalDate())return toast('Choose a valid past or current date');
+  const payload={sport:$('trainSport').value,activity_type:$('trainType').value,duration_minutes:duration,focus:$('trainFocus').value,session_date:day,notes:$('trainNotes').value.trim()};
+  if(payload.notes.length>1000)return toast('Notes are too long');
+  const uid=session.user.id;trainingBusy=true;$('trainSaveBtn').disabled=true;
+  try{
+    const q=trainingEditingId?sb.from('training_sessions').update(payload).eq('id',trainingEditingId).eq('user_id',uid):sb.from('training_sessions').insert({...payload,user_id:uid});
+    const {error}=await q.select('id');if(error)throw error;
+    toast(trainingEditingId?'Session updated':'Training session saved ✅');resetTrainingForm();await loadTrainingSessions();
+  }catch(err){toast('Could not save: '+(err.message||'Please retry'))}
+  finally{trainingBusy=false;$('trainSaveBtn').disabled=false}
+}
+async function deleteTrainingSession(id){
+  if(!session||trainingBusy)return;
+  const x=trainingSessions.find(t=>t.id===id);if(!x||!confirm('Delete this training session?'))return;
+  trainingBusy=true;
+  try{const {error}=await sb.from('training_sessions').delete().eq('id',id).eq('user_id',session.user.id);if(error)throw error;toast('Training session deleted');if(trainingEditingId===id)resetTrainingForm();await loadTrainingSessions()}
+  catch(err){toast('Could not delete: '+(err.message||'Please retry'))}
+  finally{trainingBusy=false}
+}
 
 function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
