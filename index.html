@@ -390,7 +390,7 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
     <h2>5. Location and notifications</h2>
     <p>Location access is optional and requested by your browser when you use nearby court search. You may instead search by a city or place. Court searches can send the location or search text to mapping services; precise live coordinates are not posted to other players as your profile location. Push notifications are optional; you can change notification preferences in Account or your device settings.</p>
     <h2>6. Retention and account deletion</h2>
-    <p>We generally keep account, training, and app records while your account is active or while needed to provide the service. You can edit or remove your training sessions and goals. Under <b>Account → Safety &amp; Privacy → Account Deletion</b>, you can initiate deletion of your account. Accounts with shared matches, tournaments, or club ownership may require administrator review so other players' records are not accidentally erased. A request remains pending until completed; this beta process is still being refined. Necessary records may be preserved or de-identified where permitted or required by law.</p>
+    <p>We generally keep account, training, and app records while your account is active or while needed to provide the service. You can edit or remove your training sessions and goals. Under <b>Account → Safety &amp; Privacy → Account Deletion</b>, you can initiate deletion of your account. When deletion completes, the login and private training data are removed, as are the player's posts and comments. Historical competitive scores may continue to appear with the generic name Deleted Player so opponents' results remain accurate. A player who owns a club or has ongoing events may need to transfer ownership or finish those activities first; requests remain pending for review in these cases. This beta flow has not yet completed a live end-to-end deletion test and will be reviewed again before App Store release.</p>
     <h2>7. Your choices</h2>
     <p>You can update your display name, training information, notification settings, and social follows; block players; and request account deletion within the app. You may contact support for questions about access, correction, or removal of information.</p>
     <h2>8. Younger players</h2>
@@ -403,7 +403,7 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
   <div class="publicPaper"><h2>Contact Paddle League Support</h2><p>To send a private support request, sign in and open <b>Account → Privacy &amp; Support → Contact Support</b>. Choose a category, describe the issue, and press Send Support Request. The request is stored privately so the app administrator can review it.</p>
    <p class="publicNotice">This is a beta support process. Support requests are not instant chat, and a response time has not yet been established. A dedicated public support email is being arranged for App Store launch.</p>
    <a href="/?view=support" class="publicAction">Open Paddle League to Contact Support</a>
-   <h2>Common questions</h2><h3>How do I delete my account?</h3><p>Open Account → Safety &amp; Privacy → Account Deletion. Follow the confirmation steps. If shared club or match records are involved, your request may need manual review.</p>
+   <h2>Common questions</h2><h3>How do I delete my account?</h3><p>Open Account → Safety &amp; Privacy → Account Deletion. Follow the confirmation steps. A safe, non-deleting readiness check is available on that screen. If you own a club or have active events, transfer ownership or finish the event first. Historical scores may remain under Deleted Player after deletion.</p>
    <h3>How do I report abuse?</h3><p>Use the Report option on a player profile, post, or comment, where available, or submit a Safety report through the in-app support form. Block controls are available on other player profiles.</p>
    <h3>Is training progress public?</h3><p>No. Training notes and personal goals are private. Official competitive results and rankings may be visible to other players.</p>
    <h3>How do I change notification preferences?</h3><p>Open Account → Settings. You can switch notification categories on or off and adjust permissions on your phone.</p>
@@ -656,7 +656,7 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
 
   <div class="accountSectionTitle">Safety & Privacy</div>
   <div class="card"><div class="cardHead"><div><b>🛡️ Blocked Players</b><div class="sub">Manage people you don't want to interact with</div></div></div><div id="blockedPlayersList"><div class="empty">Loading blocked players…</div></div><div class="safetyNote" style="padding:0 14px 13px">Blocking removes follows and hides each other's social posts and Looking to Play invitations. Verified match results and public leaderboards may still include both players.</div></div>
-  <div class="card safetyDanger"><div class="cardHead"><b>Account Deletion</b></div><div style="padding:14px"><div class="safetyNote" style="margin-top:0">Delete your Paddle League account and personal information. If your account has no shared match, tournament, or club history, deletion can finish immediately. Otherwise, a request is saved for administrator review so other players’ records are not erased. <b>Deletion is permanent once completed.</b></div><div id="deletionRequestStatus" class="safetyStatus" style="margin-top:11px">Checking request status…</div><button id="deletionRequestBtn" class="btn full" style="margin-top:10px" onclick="requestAccountDeletion()">Delete my account</button><button id="deletionCancelBtn" class="btn full hidden" style="margin-top:8px" onclick="cancelAccountDeletionRequest()">Cancel pending request</button></div></div>
+  <div class="card safetyDanger"><div class="cardHead"><b>Account Deletion</b></div><div style="padding:14px"><div class="safetyNote" style="margin-top:0">Delete your account, training records, and posts permanently. Shared match scores can remain under an anonymous-looking <b>Deleted Player</b> label, without your name or login. If you own a club or have active events, your request stays pending while those are resolved. <b>Deletion cannot be undone.</b></div><div id="deletionRequestStatus" class="safetyStatus" style="margin-top:11px">Checking request status…</div><button id="deletionReadinessBtn" class="btn full" style="margin-top:9px" onclick="checkDeletionReadiness()">Check deletion readiness (safe)</button><div id="deletionReadinessResult" class="safetyStatus" style="margin-top:8px" role="status" aria-live="polite">This check does not delete anything.</div><button id="deletionRequestBtn" class="btn full" style="margin-top:10px" onclick="requestAccountDeletion()">Delete my account</button><button id="deletionCancelBtn" class="btn full hidden" style="margin-top:8px" onclick="cancelAccountDeletionRequest()">Cancel pending request</button></div></div>
   <div class="accountSectionTitle" id="privacySupportSection">Privacy &amp; Support</div>
   <div class="card" id="privacyPolicyAccountCard">
     <div class="cardHead"><div><b>🔒 Privacy Policy</b><div class="sub">What we collect and how we protect your information</div></div><span class="pill">PUBLIC</span></div>
@@ -697,7 +697,7 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
     </div>
   </div>
   <div class="card" id="psFaqCard"><div class="cardHead"><b>❓ Quick Help</b></div><div class="psCardBody psFaq">
-    <details><summary>How do I delete my account?</summary><p>Go to Account → Safety &amp; Privacy → Account Deletion. Some accounts need additional review to preserve other players' match and club records.</p></details>
+    <details><summary>How do I delete my account?</summary><p>Go to Account → Safety &amp; Privacy → Account Deletion. Check readiness first. Club owners and active-event participants may need review or ownership transfer. Past match scores are preserved with the generic name Deleted Player.</p></details>
     <details><summary>Are my training sessions private?</summary><p>Yes. Your training notes, durations, personal goals, and activity calendar are private to your account, not visible on public leaderboards.</p></details>
     <details><summary>How do I report another player?</summary><p>Use the Report option on a post, comment or profile when available. You can also block a player from their profile or send a Safety report here.</p></details>
   </div></div>
@@ -1387,11 +1387,23 @@ async function loadAccountDeletionRequest(){
  cancel.classList.toggle('hidden',data.status!=='pending');
  if(data.status==='processing'){go.disabled=true;}
 }
+async function checkDeletionReadiness(){
+ const b=$('deletionReadinessBtn'),result=$('deletionReadinessResult');
+ if(!b||!result||!session?.user?.id)return;
+ b.disabled=true;result.textContent='Checking clubs and shared activities…';
+ try{
+  const {data,error}=await sb.functions.invoke('delete-paddle-account',{body:{action:'readiness'}});
+  if(error)throw error;
+  if(data?.status!=='ready'&&data?.status!=='needs_review')throw Error(data?.error||'Readiness unavailable');
+  result.textContent=(data.status==='ready'?'✓ Ready: ':'Review needed: ')+(data.message||'');
+ }catch(e){result.textContent='Unable to check right now. No changes were made.';console.warn('Deletion readiness:',e?.message||e)}
+ finally{b.disabled=false;}
+}
 async function requestAccountDeletion(){
  if(!session?.user?.id)return;
  const go=$('deletionRequestBtn');
- if(!confirm('Permanently delete your Paddle League account? Your personal data and training logs will be removed once deletion completes. Shared results may require a manual review. This cannot be undone.'))return;
- const typed=prompt('To confirm, type DELETE in all capitals. If no shared records exist, your account may be deleted immediately.');
+ if(!confirm('Permanently delete your Paddle League account? Personal content and training logs will be removed. Shared scores may be retained under Deleted Player. Club ownership or active events may require review. This cannot be undone.'))return;
+ const typed=prompt('To confirm, type DELETE in all capitals. This may immediately delete your account if you have no ownership or active-event blockers.');
  if(typed!=='DELETE'){if(typed!==null)toast('Deletion canceled');return;}
  go.disabled=true;go.textContent='Checking deletion safety…';
  try{

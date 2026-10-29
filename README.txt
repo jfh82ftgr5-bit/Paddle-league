@@ -16,3 +16,13 @@ TEST:
 4) Open in another player's account; admin card should NOT appear and the backend must deny reading other players' tickets.
 
 LIMITS: Inbox handles status only, not reply emails. It currently shows the latest 100 tickets and requires manual refresh. Admins must handle sensitive requests carefully. No actual emails are sent by changing status.
+
+
+ACCOUNT DELETION V3 (2026-10-29)
+- Privacy & Support and Admin Support Inbox are preserved.
+- Account > Safety & Privacy > Account Deletion now has a non-destructive Check deletion readiness control.
+- Server: delete-paddle-account Edge Function v2 deployed separately, with protected Supabase deletion logic.
+- Database: anonymous historical player profiles preserve other players' match scores; the authenticated account and private content are removed on completed deletion.
+- Club owners and people in active events are blocked from automatic deletion until safely resolved.
+- CRITICAL: Do not test actual deletion on your primary account. No live deletion has been tested yet. Test only with a disposable account that has explicitly consented to permanent removal.
+- App Store launch still requires full deletion testing, administrator processing of blocked requests, security review, and legal/privacy review of retained match records.
