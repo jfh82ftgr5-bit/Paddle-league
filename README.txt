@@ -1,37 +1,33 @@
-PADDLE LEAGUE — PROGRESS DASHBOARD V2
+PADDLE LEAGUE — ACCOUNT DELETION V2 (BETA)
 
-Upload/replace these same 5 files in GitHub repo root:
-1. index.html
-2. manifest.webmanifest
-3. sw.js
-4. vercel.json
-5. README.txt
+This update continues directly from the App Store Safety V1 build and preserves Training Sessions and Progress Dashboard V2, player blocking, and existing competitive features.
 
-NEW (builds on working Training Sessions V1):
-- Training Progress screen linked from Home and Account.
-- Optional weekly goals (sessions and minutes), with private Supabase sync.
-- Monthly training activity calendar with tappable dates.
-- Last eight weeks of practice: court time / session-count chart.
-- Goals and charts refresh after adding, editing, or deleting a practice.
-- Clear goals without deleting saved sessions.
-- Training remains private; ELO, matches, seasons, ranks, tournaments unaffected.
+INSTALL (same 5-file method):
+Upload/replace these five files in GitHub repo Paddle-league, branch main:
+  index.html
+  manifest.webmanifest
+  sw.js
+  vercel.json
+  README.txt
+Wait until Vercel finishes deploying. Do not upload the entire ZIP as one file to GitHub.
 
-SUPABASE: New `training_goals` table with per-user Row Level Security was applied to the existing project.
-Existing `training_sessions` records are reused. No manual SQL necessary.
+ALREADY DEPLOYED TO SUPABASE — DO NOT RUN EXTRA SQL:
+- Edge Function delete-paddle-account (requires signed-in user's JWT and explicit confirmation)
+- Shared history protection: authenticated user deletion is prevented when club ownership, matches, tournament states, game-night records or other shared game history would be affected.
+- Existing account_deletion_requests is still used to track unfinished deletion requests.
 
-TEST:
-1. Deploy the five files to GitHub main (Vercel redeploys).
-2. Open Home > Your Training > Progress.
-3. Set a modest weekly goal and save, reopen, and verify it persists.
-4. Check current month's calendar and past 8-week chart.
-5. Log/edit a practice, verify progress changes; try clearing goals (session remains).
+WHAT HAPPENS IF A PLAYER REQUESTS DELETION:
+- No shared history: the signed-in user confirms, the server deletes that Supabase Auth user, and on-delete cascading removes their personal account records, posts and training logs.
+- Shared history: the server stores a pending deletion request. The account stays active, and an administrator must review how to preserve the other players' historical data before completing deletion. Players can cancel a pending request.
 
-All other app files/features remain unchanged.
+IMPORTANT BETA LIMITATION:
+This is NOT the complete automated deletion system for established players with shared history. Requests in that case currently require human follow-up by the app owner; there is no automatic staff queue/notification or promised completion time. Before App Store submission, define and implement a reliable request handling process, user completion notices, privacy policy/retention rules, and a safe de-identification pathway for shared historical records.
 
+DO NOT TEST THE DELETION BUTTON WITH YOUR MAIN ACCOUNT.
+It could permanently delete that account if no shared history is present. For tests, use a newly created disposable test account with NO activity, and only if you are willing to lose that account.
 
-APP STORE SAFETY V1 (BETA)
-- Player profiles now offer a Block action; blocked players can be managed from Account > Safety & Privacy.
-- Blocking removes mutual follows, hides social posts/comments/reactions, and prevents new follows and Looking to Play connections. Match results/rankings remain public.
-- Account now has Request Account Deletion. This creates a review request ONLY and does not automatically remove the user or historical data. Manual processing and complete account deletion automation are still outstanding before App Store submission.
-- Supabase migration was applied directly. Do not run SQL from this ZIP.
-- This remains a beta requiring testing across different real player accounts.
+TESTING DONE BY ASSISTANT:
+- Frontend JavaScript syntax check passed.
+- Simulated response handling tested for queued and deleted statuses and pending status display.
+- Supabase Edge Function deployment verified, and DB guard function/trigger and security settings checked.
+- No real users or records were deleted to test this feature; production end-to-end deletion still needs validation with an expendable test account.

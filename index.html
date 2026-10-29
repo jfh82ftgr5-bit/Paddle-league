@@ -575,7 +575,7 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 
   <div class="accountSectionTitle">Safety & Privacy</div>
   <div class="card"><div class="cardHead"><div><b>🛡️ Blocked Players</b><div class="sub">Manage people you don't want to interact with</div></div></div><div id="blockedPlayersList"><div class="empty">Loading blocked players…</div></div><div class="safetyNote" style="padding:0 14px 13px">Blocking removes follows and hides each other's social posts and Looking to Play invitations. Verified match results and public leaderboards may still include both players.</div></div>
-  <div class="card safetyDanger"><div class="cardHead"><b>Account Deletion</b></div><div style="padding:14px"><div class="safetyNote" style="margin-top:0">You can initiate a request to remove your Paddle League account. This beta workflow queues a request for review; it does not immediately delete your account or shared match records.</div><div id="deletionRequestStatus" class="safetyStatus" style="margin-top:11px">Checking request status…</div><button id="deletionRequestBtn" class="btn full" style="margin-top:10px" onclick="requestAccountDeletion()">Request account deletion</button><button id="deletionCancelBtn" class="btn full hidden" style="margin-top:8px" onclick="cancelAccountDeletionRequest()">Cancel pending request</button></div></div>
+  <div class="card safetyDanger"><div class="cardHead"><b>Account Deletion</b></div><div style="padding:14px"><div class="safetyNote" style="margin-top:0">Delete your Paddle League account and personal information. If your account has no shared match, tournament, or club history, deletion can finish immediately. Otherwise, a request is saved for administrator review so other players’ records are not erased. <b>Deletion is permanent once completed.</b></div><div id="deletionRequestStatus" class="safetyStatus" style="margin-top:11px">Checking request status…</div><button id="deletionRequestBtn" class="btn full" style="margin-top:10px" onclick="requestAccountDeletion()">Delete my account</button><button id="deletionCancelBtn" class="btn full hidden" style="margin-top:8px" onclick="cancelAccountDeletionRequest()">Cancel pending request</button></div></div>
   <div class="accountSectionTitle">Account</div>
   <div class="card signoutCard" style="padding:14px"><button class="btn danger full" onclick="signOut()">Sign Out</button><div class="sub" style="text-align:center;margin-top:8px">You can sign back in anytime with your account.</div></div>
 </section>
@@ -1243,22 +1243,54 @@ async function renderBlockedPlayers(){
  el.innerHTML=(data||[]).length?data.map(r=>`<div class="blockedListItem"><div class="avatar">${initials(r.profiles?.display_name||'P')}</div><div class="grow"><b>${escapeHtml(r.profiles?.display_name||'Player')}</b><div class="sub">Blocked</div></div><button class="btn" onclick="togglePlayerBlock('${r.blocked_id}')">Unblock</button></div>`).join(''):'<div class="empty">Nobody blocked. You can block someone from their player profile.</div>';
 }
 async function loadAccountDeletionRequest(){
- const el=$('deletionRequestStatus'),go=$('deletionRequestBtn'),cancel=$('deletionCancelBtn');if(!el||!session?.user?.id)return;
+ const el=$('deletionRequestStatus'),go=$('deletionRequestBtn'),cancel=$('deletionCancelBtn');
+ if(!el||!session?.user?.id)return;
  const {data,error}=await sb.from('account_deletion_requests').select('requested_at,status').eq('user_id',session.user.id).maybeSingle();
- if(error){el.textContent='Could not check deletion requests. Please try again later.';go.disabled=true;cancel.classList.add('hidden');return;}
- if(!data){el.textContent='No account deletion request is pending. Your account remains active.';go.classList.remove('hidden');go.disabled=false;cancel.classList.add('hidden');return;}
+ if(error){
+  el.textContent='Unable to check deletion requests. Please try again later.';
+  go.disabled=true;cancel.classList.add('hidden');return;
+ }
+ go.classList.remove('hidden');go.disabled=false;
+ if(!data){
+  el.textContent='No deletion request is pending. Your account is active.';
+  go.textContent='Delete my account';cancel.classList.add('hidden');return;
+ }
  const date=new Date(data.requested_at).toLocaleDateString();
- el.textContent=`Deletion request submitted ${date}. Status: ${data.status}. Your account is still active until processing is completed.`;
- go.classList.add('hidden');cancel.classList.toggle('hidden',data.status!=='pending');
+ el.textContent='Deletion requested '+date+'. Status: '+data.status+'. Your account is still active. You can continue the deletion process or cancel a pending request.';
+ go.textContent='Continue account deletion';
+ cancel.classList.toggle('hidden',data.status!=='pending');
+ if(data.status==='processing'){go.disabled=true;}
 }
 async function requestAccountDeletion(){
  if(!session?.user?.id)return;
- if(!confirm('Request deletion of your Paddle League account? This creates a request for manual review and does NOT immediately delete your account.'))return;
- const typed=prompt('To submit a deletion request, type DELETE in capitals. This does not immediately remove your account.');
- if(typed!=='DELETE'){if(typed!==null)toast('Request not submitted.');return;}
- const {error}=await sb.from('account_deletion_requests').insert({user_id:session.user.id});
- if(error)return toast(error.message);
- await loadAccountDeletionRequest();toast('Deletion request recorded. Account not yet deleted.');
+ const go=$('deletionRequestBtn');
+ if(!confirm('Permanently delete your Paddle League account? Your personal data and training logs will be removed once deletion completes. Shared results may require a manual review. This cannot be undone.'))return;
+ const typed=prompt('To confirm, type DELETE in all capitals. If no shared records exist, your account may be deleted immediately.');
+ if(typed!=='DELETE'){if(typed!==null)toast('Deletion canceled');return;}
+ go.disabled=true;go.textContent='Checking deletion safety…';
+ try{
+  const {data,error}=await sb.functions.invoke('delete-paddle-account',{
+   body:{confirmation:'DELETE',email:session.user.email}
+  });
+  if(error)throw error;
+  if(data?.status==='deleted'){
+   alert('Your Paddle League account has been deleted.');
+   try{if(window.PaddleOneSignal)await window.PaddleOneSignal.logout()}catch(e){}
+   try{await sb.auth.signOut()}catch(e){}
+   location.reload();
+   return;
+  }
+  if(data?.status==='queued'){
+   await loadAccountDeletionRequest();
+   alert(data.message||'Your account deletion request was saved. Your account remains active until processing finishes.');
+   return;
+  }
+  throw Error(data?.error||'Could not complete deletion. Please try again.');
+ }catch(err){
+  toast('Deletion could not be started. Please try again.');
+  console.warn('Account deletion:',err?.message||err);
+  await loadAccountDeletionRequest();
+ }finally{if($('deletionRequestBtn'))$('deletionRequestBtn').disabled=false;}
 }
 async function cancelAccountDeletionRequest(){
  if(!confirm('Cancel your pending account deletion request?'))return;
