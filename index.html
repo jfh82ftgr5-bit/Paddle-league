@@ -274,6 +274,48 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 .trainingSectionTitle{font-size:13px;font-weight:900;margin:15px 0 8px}
 @media(max-width:380px){.trainingWeekStats{gap:5px;padding:10px 9px 5px}.trainingMetric{padding:9px 6px}.trainingMetric b{font-size:16px}}
 
+
+/* Progress Dashboard V2 — training-only, personal, private */
+.trainingQuickButtons{display:flex;gap:6px;flex:0 0 auto}
+.trainingQuickButtons .btn{font-size:10px;padding:9px 11px}
+.trainingGoalHome{margin:0 13px 12px;background:#111729;border:1px solid #2e3550;border-radius:12px;padding:10px 12px;cursor:pointer}
+.trainingGoalHomeTitle{font-size:11px;font-weight:900;margin-bottom:6px}
+.progressTopTitle{font-size:19px;font-weight:950}
+.progressCard{background:#111522;border:1px solid #282f42;border-radius:16px;padding:14px;margin-bottom:12px}
+.progressCard h3{margin:0 0 3px;font-size:15px}
+.progressCard .sub{line-height:1.4}
+.progressGoalStat{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;font-weight:850;margin-top:12px}
+.progressMeter{height:8px;background:#24283a;border-radius:99px;overflow:hidden;margin-top:6px}
+.progressMeter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c5cff,#a78bfa);border-radius:99px}
+.progressGoalActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.progressGoalActions button{font-size:11px;padding:9px 11px}
+.progressGoalFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:9px 0}
+.progressGoalFields input{width:100%;background:#090c13;color:#fff;border:1px solid #30364b;border-radius:10px;padding:10px;font-size:16px}
+.progressCalendarNav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:13px 0 9px}
+.progressCalendarNav b{font-size:13px}
+.progressCalendarNav button{padding:7px 10px;font-size:12px}
+.progressCalendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.progressWeekLabel{text-align:center;color:#848ca1;font-size:9px;padding:5px 0 7px}
+.progressCalendarDay{height:39px;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;background:#0c101b;border:1px solid #202638;border-radius:10px;color:#b4bdd0;font-size:11px;cursor:pointer;padding:3px}
+.progressCalendarDay.hasTraining{background:#261e43;border-color:#725cbe;color:#f4efff;font-weight:850}
+.progressCalendarDay.isSelected{outline:2px solid #b9a7ff;outline-offset:-2px}
+.progressCalendarDay.isToday:not(.isSelected){border-color:#74788d}
+.progressCalendarDay[disabled]{opacity:.5;cursor:default}
+.progressCalendarDot{height:4px;width:14px;border-radius:99px;background:#ac9af6}
+.progressDayDetail{margin-top:11px;padding:10px 11px;background:#0b0f18;border:1px solid #232a3a;border-radius:11px;min-height:41px;font-size:11px;line-height:1.5;color:#b5bdce}
+.progressTrendSwitch{display:flex;gap:6px;margin-top:12px}
+.progressTrendSwitch .btn{flex:1;font-size:10px;padding:9px 7px}
+.progressTrendSwitch .on{background:#292043;border-color:#8663db}
+.progressTrendChart{display:flex;gap:5px;justify-content:space-between;align-items:stretch;min-height:166px;margin-top:11px}
+.progressTrendItem{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.progressTrendValue{font-size:9px;color:#c5cbe0;min-height:16px;white-space:nowrap}
+.progressTrendTrack{width:100%;height:104px;display:flex;justify-content:center;align-items:flex-end;background:#0c1019;border-radius:7px;padding:4px 3px}
+.progressTrendBar{width:80%;max-width:30px;border-radius:5px 5px 3px 3px;background:linear-gradient(180deg,#b197ff,#6e5be8)}
+.progressTrendLabel{text-align:center;color:#8e95a8;font-size:9px;white-space:nowrap}
+.progressTrendSummary{margin-top:12px;color:#9ca5b7;font-size:11px;line-height:1.5}
+.progressMuted{font-size:10px;color:#8e96a8;line-height:1.5;margin-top:9px}
+@media(max-width:410px){.trainingQuickRow{align-items:flex-start;flex-wrap:wrap}.trainingQuickRow .sub{flex-basis:100%}.trainingQuickButtons{width:100%;justify-content:flex-end}.progressTrendValue{font-size:8px}.progressTrendLabel{font-size:8px}}
+
 </style>
 </head>
 <body>
@@ -319,7 +361,8 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
      <div class="cardHead"><div><b>📈 Your Training</b><div class="sub">Every session counts — even when you aren't competing.</div></div><button class="btn primary" onclick="openTrainingLog()">＋ Log Activity</button></div>
      <div class="trainingWeekStats"><div class="trainingMetric"><b id="trainingWeekSessions">—</b><small>Sessions this week</small></div><div class="trainingMetric"><b id="trainingWeekTime">—</b><small>Court time this week</small></div><div class="trainingMetric"><b id="trainingTotalSessions">—</b><small>Training sessions logged</small></div></div>
      <div id="trainingWeekChart" class="trainingChart" aria-label="Training minutes for each day this week"></div>
-     <div class="trainingQuickRow"><div class="sub" id="trainingLastSession">Start your training log with your first session.</div><button class="btn" onclick="openTrainingLog('history')">History ›</button></div>
+     <div id="trainingGoalHome" class="trainingGoalHome hidden" role="button" tabindex="0" onclick="openTrainingProgress()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTrainingProgress()}"></div>
+     <div class="trainingQuickRow"><div class="sub" id="trainingLastSession">Start your training log with your first session.</div><div class="trainingQuickButtons"><button class="btn primary" onclick="openTrainingProgress()">Progress ›</button><button class="btn" onclick="openTrainingLog('history')">History ›</button></div></div>
    </div>
    <div id="homeGlobalRank" class="card" style="padding:14px"></div>
   <div class="hero homeHero"><h1 id="welcome">Your Club</h1><p class="muted">Your club hub for matches, posts, tournaments, and friends.</p><div id="currentLeagueChip"></div></div>
@@ -479,7 +522,7 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
   <div class="card"><div class="cardHead"><b>🏅 Rank Center</b><span class="pill">8 RANKS</span></div><div id="rankList"></div></div>
 
   <div class="accountSectionTitle">Training & Progress</div>
-  <div class="card" style="padding:14px"><div class="row" style="padding:0"><div class="settingsIcon">📈</div><div class="grow"><b>My Training Log</b><div class="sub">Your practice sessions, court time, and progress. Private to you.</div></div><button class="btn" onclick="openTrainingLog('history')">View</button></div></div>
+  <div class="card" style="padding:14px"><div class="row" style="padding:0"><div class="settingsIcon">📈</div><div class="grow"><b>My Training Log</b><div class="sub">Practice history, court time and notes. Private to you.</div></div><button class="btn" onclick="openTrainingLog('history')">View</button></div><div class="row" style="padding:12px 0 0"><div class="settingsIcon">🎯</div><div class="grow"><b>My Training Progress</b><div class="sub">Optional goals, activity calendar, weekly trends.</div></div><button class="btn" onclick="openTrainingProgress()">View</button></div></div>
 
   <div class="accountSectionTitle">Advanced Stats</div>
   <div id="accountAdvancedStats"><div class="card"><div class="empty">Loading advanced stats…</div></div></div>
@@ -543,6 +586,26 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
         <div class="actions"><button type="button" class="btn" onclick="resetTrainingForm()">Clear</button><button id="trainSaveBtn" type="submit" class="btn primary">Save Session</button></div>
       </form>
       <div class="trainingSectionTitle">Recent sessions</div><div id="trainingLogList"><div class="empty">Loading your training log…</div></div>
+    </div>
+  </div>
+</div>
+<div id="trainingProgressOverlay" class="trainingOverlay hiddenImportant" onclick="closeTrainingProgress(event)">
+  <div class="trainingShell" onclick="event.stopPropagation()">
+    <div class="trainingTop"><div><div class="progressTopTitle">📈 Training Progress</div><div class="sub">Your private practice journal and goals</div></div><button class="btn" onclick="closeTrainingProgress()" aria-label="Close training progress">✕</button></div>
+    <div class="trainingContent">
+      <div class="progressCard"><h3>🎯 Weekly goals</h3><div class="sub">Choose a goal that fits your schedule. Rest days count, too.</div>
+        <div id="trainingGoalsView"><div class="progressMuted">Loading goals…</div></div>
+        <div id="trainingGoalsEditor" class="hidden"><div class="progressGoalFields"><div class="field"><label for="trainingGoalSessions">Sessions / week</label><input id="trainingGoalSessions" type="number" min="1" max="7" step="1" inputmode="numeric" value="2"></div><div class="field"><label for="trainingGoalMinutes">Minutes / week</label><input id="trainingGoalMinutes" type="number" min="15" max="900" step="15" inputmode="numeric" value="120"></div></div><div class="progressGoalActions"><button class="btn primary" id="trainingSaveGoalBtn" onclick="saveTrainingGoals()">Save goals</button><button class="btn" onclick="cancelTrainingGoalsEditor()">Cancel</button></div></div>
+      </div>
+      <div class="progressCard"><h3>📅 Activity calendar</h3><div class="sub">The days you logged practice — tap a date to see what you did.</div>
+        <div class="progressCalendarNav"><button class="btn" onclick="changeTrainingCalendarMonth(-1)" aria-label="Previous month">‹</button><b id="trainingCalendarMonth">Month</b><button id="trainingCalendarNext" class="btn" onclick="changeTrainingCalendarMonth(1)" aria-label="Next month">›</button></div>
+        <div id="trainingCalendarGrid" class="progressCalendar"></div><div id="trainingCalendarDetail" class="progressDayDetail" aria-live="polite">Select a day to view activity.</div>
+      </div>
+      <div class="progressCard"><h3>📊 Last 8 weeks</h3><div class="sub">A look at your practice pattern over time, not a measure of skill or fitness.</div>
+        <div class="progressTrendSwitch"><button id="trainingTrendTime" class="btn on" onclick="setTrainingTrendMode('time')">Court time</button><button id="trainingTrendSessions" class="btn" onclick="setTrainingTrendMode('sessions')">Sessions</button></div>
+        <div id="trainingTrendChart" class="progressTrendChart" aria-label="Weekly training history"></div><div id="trainingTrendSummary" class="progressTrendSummary"></div>
+      </div>
+      <p class="progressMuted">🔒 Only you can see your training history and goals. None of these activities or goals changes ELO, match records, or rank.</p>
     </div>
   </div>
 </div>
@@ -722,7 +785,7 @@ function rankProgressData(elo){const i=rankIndex(elo),cur=tiers[i],next=tiers[i+
 function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class="rankIcon ${cls}" src="${rankImages[d.i]}" alt="${d.cur[0]} rank badge">`}
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
-async function boot(s){session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice()}
+async function boot(s){if(session?.user?.id!==s?.user?.id){trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice()}
 let milestoneQueue=[];
 function milestoneSnapshotKey(){return session?`pl_milestone_snapshot_${session.user.id}`:''}
 function showMilestone(m){
@@ -1767,11 +1830,11 @@ async function loadTrainingSessions(){
   if(!session||trainingLoading)return;
   const uid=session.user.id;trainingLoading=true;
   try{
-    const {data,error}=await sb.from('training_sessions').select('id,user_id,sport,activity_type,duration_minutes,focus,notes,session_date,created_at').eq('user_id',uid).order('session_date',{ascending:false}).order('created_at',{ascending:false}).limit(500);
+    const {data,error}=await sb.from('training_sessions').select('id,user_id,sport,activity_type,duration_minutes,focus,notes,session_date,created_at').eq('user_id',uid).order('session_date',{ascending:false}).order('created_at',{ascending:false}).limit(1000);
     if(error)throw error;
     if(session?.user.id!==uid)return;
     trainingSessions=data||[];
-    renderTrainingDashboard();renderTrainingLog();
+    renderTrainingDashboard();renderTrainingLog();renderTrainingProgress();
   }catch(err){console.error('Training load failed',err);if($('trainingLastSession'))$('trainingLastSession').textContent='Training could not load. Tap History to retry.';if($('trainingLogList'))$('trainingLogList').innerHTML='<div class="empty">Could not load training. Please try again.</div>';toast('Training load failed: '+(err.message||'Try again'))}
   finally{trainingLoading=false}
 }
@@ -1822,6 +1885,121 @@ async function deleteTrainingSession(id){
   try{const {error}=await sb.from('training_sessions').delete().eq('id',id).eq('user_id',session.user.id);if(error)throw error;toast('Training session deleted');if(trainingEditingId===id)resetTrainingForm();await loadTrainingSessions()}
   catch(err){toast('Could not delete: '+(err.message||'Please retry'))}
   finally{trainingBusy=false}
+}
+
+
+
+/* Progress Dashboard V2 — history remains training-only; targets are opt-in. */
+let trainingGoals=null,trainingGoalsLoaded=false,trainingGoalsLoading=false,trainingGoalsBusy=false;
+let trainingCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+let trainingCalendarSelected=null,trainingTrendMode='time';
+function trainingDailySessions(key){return trainingSessions.filter(x=>x.session_date===key)}
+function trainingCurrentWeek(){const a=trainingWeekStart(),b=trainingLocalDate();return trainingSessions.filter(x=>x.session_date>=a&&x.session_date<=b)}
+function trainingGoalMeter(current,goal){return `<div class="progressMeter" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(current,goal)}"><i style="width:${Math.min(100,Math.round(current/goal*100))}%"></i></div>`}
+async function loadTrainingGoals(){
+  if(!session||trainingGoalsLoading)return;
+  const uid=session.user.id;trainingGoalsLoading=true;
+  try{
+    const {data,error}=await sb.from('training_goals').select('sessions_target,minutes_target').eq('user_id',uid).maybeSingle();
+    if(error)throw error;
+    if(session?.user.id!==uid)return;
+    trainingGoals=data||null;trainingGoalsLoaded=true;
+    renderTrainingGoals();
+  }catch(err){console.error('Training goal load failed',err);trainingGoalsLoaded=false;renderTrainingGoals();}
+  finally{trainingGoalsLoading=false;}
+}
+function openTrainingProgress(){
+  if(!session)return toast('Sign in to view training progress');
+  const modal=$('trainingProgressOverlay');modal.classList.remove('hiddenImportant');modal.scrollTop=0;
+  trainingCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+  trainingCalendarSelected=trainingLocalDate();
+  cancelTrainingGoalsEditor();renderTrainingProgress();
+  loadTrainingSessions();loadTrainingGoals();
+}
+function closeTrainingProgress(e){if(e&&e.target!==$('trainingProgressOverlay'))return;$('trainingProgressOverlay').classList.add('hiddenImportant');cancelTrainingGoalsEditor()}
+function renderTrainingProgress(){renderTrainingGoals();renderTrainingCalendar();renderTrainingTrends()}
+function renderTrainingGoals(){
+  const el=$('trainingGoalsView'),home=$('trainingGoalHome');if(!el)return;
+  if(!trainingGoalsLoaded){el.innerHTML='<div class="progressMuted">Goals are unavailable right now. You can still view your calendar and trends. <button class="btn" onclick="loadTrainingGoals()">Retry</button></div>';home?.classList.add('hidden');return}
+  if(!trainingGoals){el.innerHTML='<div class="progressMuted">No weekly goal set. This is optional — choose what works for you.</div><div class="progressGoalActions"><button class="btn primary" onclick="editTrainingGoals()">＋ Set a goal</button></div>';home?.classList.add('hidden');return}
+  const week=trainingCurrentWeek(),sessions=week.length,minutes=week.reduce((n,x)=>n+Number(x.duration_minutes||0),0);
+  el.innerHTML=`<div class="progressGoalStat"><span>Sessions</span><span>${sessions} / ${trainingGoals.sessions_target}</span></div>${trainingGoalMeter(sessions,trainingGoals.sessions_target)}<div class="progressGoalStat"><span>Court time</span><span>${trainingTimeText(minutes)} / ${trainingTimeText(trainingGoals.minutes_target)}</span></div>${trainingGoalMeter(minutes,trainingGoals.minutes_target)}<div class="progressGoalActions"><button class="btn" onclick="editTrainingGoals()">Edit goals</button><button class="btn" onclick="clearTrainingGoals()">Clear goals</button></div>`;
+  if(home){home.classList.remove('hidden');home.innerHTML=`<div class="trainingGoalHomeTitle">🎯 Weekly goals · View progress ›</div><div class="sub">${sessions}/${trainingGoals.sessions_target} sessions · ${trainingTimeText(minutes)}/${trainingTimeText(trainingGoals.minutes_target)} court time</div>${trainingGoalMeter(sessions,trainingGoals.sessions_target)}`}
+}
+function editTrainingGoals(){
+  $('trainingGoalSessions').value=trainingGoals?.sessions_target||2;
+  $('trainingGoalMinutes').value=trainingGoals?.minutes_target||120;
+  $('trainingGoalsEditor').classList.remove('hidden');
+}
+function cancelTrainingGoalsEditor(){$('trainingGoalsEditor')?.classList.add('hidden')}
+async function saveTrainingGoals(){
+  if(!session||trainingGoalsBusy)return;
+  const sessions=Number($('trainingGoalSessions').value),minutes=Number($('trainingGoalMinutes').value);
+  if(!Number.isInteger(sessions)||sessions<1||sessions>7||!Number.isInteger(minutes)||minutes<15||minutes>900)return toast('Choose 1–7 sessions and 15–900 minutes');
+  const uid=session.user.id;trainingGoalsBusy=true;$('trainingSaveGoalBtn').disabled=true;
+  try{
+    const {error}=await sb.from('training_goals').upsert({user_id:uid,sessions_target:sessions,minutes_target:minutes,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    if(error)throw error;
+    if(session?.user.id!==uid)return;
+    trainingGoals={sessions_target:sessions,minutes_target:minutes};trainingGoalsLoaded=true;
+    cancelTrainingGoalsEditor();renderTrainingGoals();toast('Weekly goals saved');
+  }catch(err){console.error('Could not save training goals',err);toast('Could not save goals: '+(err.message||'Try again'))}
+  finally{trainingGoalsBusy=false;$('trainingSaveGoalBtn').disabled=false}
+}
+async function clearTrainingGoals(){
+  if(!session||trainingGoalsBusy||!confirm('Clear your weekly goals? Your training sessions will stay saved.'))return;
+  const uid=session.user.id;trainingGoalsBusy=true;
+  try{
+    const {error}=await sb.from('training_goals').delete().eq('user_id',uid);if(error)throw error;
+    if(session?.user.id!==uid)return;trainingGoals=null;trainingGoalsLoaded=true;
+    cancelTrainingGoalsEditor();renderTrainingGoals();toast('Goals cleared');
+  }catch(err){toast('Could not clear goals: '+(err.message||'Try again'))}
+  finally{trainingGoalsBusy=false}
+}
+function changeTrainingCalendarMonth(delta){
+  const next=new Date(trainingCalendarMonth.getFullYear(),trainingCalendarMonth.getMonth()+delta,1);
+  const now=new Date();const current=new Date(now.getFullYear(),now.getMonth(),1);
+  if(next>current)return;
+  trainingCalendarMonth=next;trainingCalendarSelected=null;renderTrainingCalendar();
+}
+function selectTrainingCalendarDay(key){trainingCalendarSelected=key;renderTrainingCalendar()}
+function renderTrainingCalendar(){
+  const el=$('trainingCalendarGrid');if(!el)return;
+  const y=trainingCalendarMonth.getFullYear(),m=trainingCalendarMonth.getMonth();
+  $('trainingCalendarMonth').textContent=trainingCalendarMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  $('trainingCalendarNext').disabled=y===new Date().getFullYear()&&m===new Date().getMonth();
+  const first=new Date(y,m,1),offset=(first.getDay()+6)%7,last=new Date(y,m+1,0).getDate();
+  const counts={};trainingSessions.forEach(x=>{counts[x.session_date]=(counts[x.session_date]||0)+1});
+  const today=trainingLocalDate();let cells=['M','T','W','T','F','S','S'].map(d=>`<div class="progressWeekLabel">${d}</div>`);
+  for(let i=0;i<offset;i++)cells.push('<div aria-hidden="true"></div>');
+  for(let d=1;d<=last;d++){
+    const key=trainingLocalDate(new Date(y,m,d,12));const count=counts[key]||0, future=key>today;
+    cells.push(`<button class="progressCalendarDay ${count?'hasTraining':''} ${key===today?'isToday':''} ${key===trainingCalendarSelected?'isSelected':''}" onclick="selectTrainingCalendarDay('${key}')" ${future?'disabled':''} aria-label="${trainingDisplayDate(key)}: ${count} training session${count===1?'':'s'}" title="${count} session${count===1?'':'s'}"><span>${d}</span>${count?'<span class="progressCalendarDot"></span>':''}</button>`);
+  }
+  el.innerHTML=cells.join('');
+  const detail=$('trainingCalendarDetail');if(!detail)return;
+  if(!trainingCalendarSelected){detail.textContent='Choose a day above to see recorded practice.';return}
+  const rows=trainingDailySessions(trainingCalendarSelected);
+  if(!rows.length){detail.textContent=trainingDisplayDate(trainingCalendarSelected)+' · No training recorded. Rest days are part of a balanced routine.';return}
+  detail.innerHTML=`<b>${trainingDisplayDate(trainingCalendarSelected)}</b> · ${rows.length} session${rows.length===1?'':'s'}<div style="margin-top:6px">${rows.map(x=>`${escapeHtml(x.sport)} · ${escapeHtml(x.focus)} · ${trainingTimeText(x.duration_minutes)}`).join('<br>')}</div>`;
+}
+function setTrainingTrendMode(mode){trainingTrendMode=mode==='sessions'?'sessions':'time';renderTrainingTrends()}
+function renderTrainingTrends(){
+  const el=$('trainingTrendChart');if(!el)return;
+  const start=new Date(trainingWeekStart()+'T12:00:00'),weeks=[];
+  for(let j=7;j>=0;j--){
+    const d=new Date(start);d.setDate(start.getDate()-j*7);
+    const begin=trainingLocalDate(d),endDate=new Date(d);endDate.setDate(d.getDate()+6),end=trainingLocalDate(endDate);
+    const rows=trainingSessions.filter(x=>x.session_date>=begin&&x.session_date<=end);
+    weeks.push({start:begin,label:`${d.getMonth()+1}/${d.getDate()}`,sessions:rows.length,mins:rows.reduce((n,x)=>n+Number(x.duration_minutes||0),0)});
+  }
+  const values=weeks.map(w=>trainingTrendMode==='sessions'?w.sessions:w.mins),scale=Math.max(1,...values);
+  $('trainingTrendTime').classList.toggle('on',trainingTrendMode==='time');
+  $('trainingTrendSessions').classList.toggle('on',trainingTrendMode==='sessions');
+  el.innerHTML=weeks.map((w,i)=>{const value=values[i],height=value?Math.max(7,Math.round(value/scale*94)):0;const text=trainingTrendMode==='time'?(value?trainingTimeText(value):'0m'):String(value);
+    return `<div class="progressTrendItem" title="Week of ${w.start}: ${w.sessions} sessions and ${w.mins} minutes"><div class="progressTrendValue">${text}</div><div class="progressTrendTrack"><div class="progressTrendBar" style="height:${height}px"></div></div><div class="progressTrendLabel">${w.label}</div></div>`}).join('');
+  const totalSessions=weeks.reduce((n,w)=>n+w.sessions,0),totalMinutes=weeks.reduce((n,w)=>n+w.mins,0);
+  $('trainingTrendSummary').textContent=`Last 8 weeks: ${totalSessions} practice session${totalSessions===1?'':'s'} · ${trainingTimeText(totalMinutes)} logged court time. These totals include training logs only, not official matches.`;
 }
 
 function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
