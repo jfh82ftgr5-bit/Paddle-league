@@ -27,3 +27,11 @@ TEST:
 5. Log/edit a practice, verify progress changes; try clearing goals (session remains).
 
 All other app files/features remain unchanged.
+
+
+APP STORE SAFETY V1 (BETA)
+- Player profiles now offer a Block action; blocked players can be managed from Account > Safety & Privacy.
+- Blocking removes mutual follows, hides social posts/comments/reactions, and prevents new follows and Looking to Play connections. Match results/rankings remain public.
+- Account now has Request Account Deletion. This creates a review request ONLY and does not automatically remove the user or historical data. Manual processing and complete account deletion automation are still outstanding before App Store submission.
+- Supabase migration was applied directly. Do not run SQL from this ZIP.
+- This remains a beta requiring testing across different real player accounts.

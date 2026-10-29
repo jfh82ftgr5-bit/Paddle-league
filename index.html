@@ -316,6 +316,16 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 .progressMuted{font-size:10px;color:#8e96a8;line-height:1.5;margin-top:9px}
 @media(max-width:410px){.trainingQuickRow{align-items:flex-start;flex-wrap:wrap}.trainingQuickRow .sub{flex-basis:100%}.trainingQuickButtons{width:100%;justify-content:flex-end}.progressTrendValue{font-size:8px}.progressTrendLabel{font-size:8px}}
 
+
+/* App Store safety V1 */
+.safetySection{margin-top:12px}.safetyNote{font-size:11px;line-height:1.5;color:#a7b0c3;margin-top:8px}
+.blockedListItem{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid #242a38}
+.blockedListItem:first-child{border-top:0}.blockedListItem .btn{font-size:10px;padding:8px 10px}
+.playerSafetyActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.playerSafetyActions>.btn{flex:1}
+.safetyDanger{border-color:#553039}.safetyDanger .cardHead{border-bottom-color:#553039}
+.safetyDanger .btn{background:#34171e;border-color:#7a3342;color:#ffc5cf}
+.safetyStatus{font-size:11px;padding:11px 13px;background:#0b101b;border:1px solid #303749;border-radius:12px;line-height:1.5}
+
 </style>
 </head>
 <body>
@@ -563,6 +573,9 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 
   <div id="moderationAdminCard" class="card modCard hidden"><div class="cardHead"><div><b>🛡️ Club Moderation</b><div class="sub">Reports for the active club</div></div><button class="btn" onclick="loadModerationQueue(true)">Refresh</button></div><div id="moderationQueue"><div class="empty">No open reports.</div></div></div>
 
+  <div class="accountSectionTitle">Safety & Privacy</div>
+  <div class="card"><div class="cardHead"><div><b>🛡️ Blocked Players</b><div class="sub">Manage people you don't want to interact with</div></div></div><div id="blockedPlayersList"><div class="empty">Loading blocked players…</div></div><div class="safetyNote" style="padding:0 14px 13px">Blocking removes follows and hides each other's social posts and Looking to Play invitations. Verified match results and public leaderboards may still include both players.</div></div>
+  <div class="card safetyDanger"><div class="cardHead"><b>Account Deletion</b></div><div style="padding:14px"><div class="safetyNote" style="margin-top:0">You can initiate a request to remove your Paddle League account. This beta workflow queues a request for review; it does not immediately delete your account or shared match records.</div><div id="deletionRequestStatus" class="safetyStatus" style="margin-top:11px">Checking request status…</div><button id="deletionRequestBtn" class="btn full" style="margin-top:10px" onclick="requestAccountDeletion()">Request account deletion</button><button id="deletionCancelBtn" class="btn full hidden" style="margin-top:8px" onclick="cancelAccountDeletionRequest()">Cancel pending request</button></div></div>
   <div class="accountSectionTitle">Account</div>
   <div class="card signoutCard" style="padding:14px"><button class="btn danger full" onclick="signOut()">Sign Out</button><div class="sub" style="text-align:center;margin-top:8px">You can sign back in anytime with your account.</div></div>
 </section>
@@ -1199,6 +1212,61 @@ function closeActiveMatch(){activeMatchCode=null;activeMatch=null;renderVerified
 
 function renderMatches(){if(!currentLeague){$('matchList').innerHTML='<div class="empty">Choose a club first.</div>';return}if(playMode==='casual'){$('matchList').innerHTML=casualMatches.length?casualMatches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${escapeHtml(m.team1_names)} <span class="${m.score1>m.score2?'win':'loss'}">${m.score1}</span> — <span class="${m.score2>m.score1?'win':'loss'}">${m.score2}</span> ${escapeHtml(m.team2_names)}</div><div class="sub">🎾 Casual • No ELO${m.court_name?' • 📍 '+escapeHtml(m.court_name):''} • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No casual matches yet. Create one and play without rank pressure.</div>';return}$('matchList').innerHTML=matches.length?matches.map(m=>`<div class="row"><div class="grow"><div class="name"><span class="pill">${m.match_type||'1s'}</span> ${profileNameLinks(m.team1_names,m.team1_ids)} <span class="${m.player1_score>m.player2_score?'win':'loss'}">${m.player1_score}</span> — <span class="${m.player2_score>m.player1_score?'win':'loss'}">${m.player2_score}</span> ${profileNameLinks(m.team2_names,m.team2_ids)}</div><div class="sub">Winner +${m.elo_change} ELO • dynamic rank-scaled rating • tap a player for profile • ${new Date(m.created_at).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No ranked matches yet.</div>'}
 
+
+// App Store Safety V1 - user-level blocking and deletion request flow.
+async function getPlayerSafetyState(other){
+  if(!session?.user?.id||other===session.user.id)return {myBlock:false,relation:false};
+  const [mine,both]=await Promise.all([
+    sb.from('player_blocks').select('blocked_id').eq('blocker_id',session.user.id).eq('blocked_id',other).maybeSingle(),
+    sb.rpc('player_relation_blocked',{p_other:other})
+  ]);
+  if(mine.error||both.error)throw Error(mine.error?.message||both.error?.message||'Could not check blocking');
+  return {myBlock:!!mine.data,relation:!!both.data};
+}
+async function togglePlayerBlock(other){
+  if(!session?.user?.id||other===session.user.id)return;
+  let current;try{current=await getPlayerSafetyState(other)}catch(e){return toast(e.message)}
+  if(!current.myBlock&&!confirm('Block this player? You will no longer follow each other or see each other’s social posts and Looking to Play invitations. This does not change match records.'))return;
+  const call=current.myBlock?sb.from('player_blocks').delete().eq('blocker_id',session.user.id).eq('blocked_id',other):sb.from('player_blocks').insert({blocker_id:session.user.id,blocked_id:other});
+  const {error}=await call;
+  if(error)return toast(error.message);
+  toast(current.myBlock?'Player unblocked':'Player blocked');
+  await renderBlockedPlayers();
+  try{await loadSocialPosts();renderActivityFeed();}catch(e){console.warn('Feed refresh:',e)}
+  try{await loadPlayPosts()}catch(e){}
+  await showPlayerProfile(other);
+}
+async function renderBlockedPlayers(){
+ const el=$('blockedPlayersList');if(!el||!session?.user?.id)return;
+ const {data,error}=await sb.from('player_blocks').select('blocked_id,profiles!player_blocks_blocked_id_fkey(display_name)').eq('blocker_id',session.user.id).order('created_at',{ascending:false});
+ if(error){el.innerHTML='<div class="empty">Could not load blocked players.</div>';return;}
+ el.innerHTML=(data||[]).length?data.map(r=>`<div class="blockedListItem"><div class="avatar">${initials(r.profiles?.display_name||'P')}</div><div class="grow"><b>${escapeHtml(r.profiles?.display_name||'Player')}</b><div class="sub">Blocked</div></div><button class="btn" onclick="togglePlayerBlock('${r.blocked_id}')">Unblock</button></div>`).join(''):'<div class="empty">Nobody blocked. You can block someone from their player profile.</div>';
+}
+async function loadAccountDeletionRequest(){
+ const el=$('deletionRequestStatus'),go=$('deletionRequestBtn'),cancel=$('deletionCancelBtn');if(!el||!session?.user?.id)return;
+ const {data,error}=await sb.from('account_deletion_requests').select('requested_at,status').eq('user_id',session.user.id).maybeSingle();
+ if(error){el.textContent='Could not check deletion requests. Please try again later.';go.disabled=true;cancel.classList.add('hidden');return;}
+ if(!data){el.textContent='No account deletion request is pending. Your account remains active.';go.classList.remove('hidden');go.disabled=false;cancel.classList.add('hidden');return;}
+ const date=new Date(data.requested_at).toLocaleDateString();
+ el.textContent=`Deletion request submitted ${date}. Status: ${data.status}. Your account is still active until processing is completed.`;
+ go.classList.add('hidden');cancel.classList.toggle('hidden',data.status!=='pending');
+}
+async function requestAccountDeletion(){
+ if(!session?.user?.id)return;
+ if(!confirm('Request deletion of your Paddle League account? This creates a request for manual review and does NOT immediately delete your account.'))return;
+ const typed=prompt('To submit a deletion request, type DELETE in capitals. This does not immediately remove your account.');
+ if(typed!=='DELETE'){if(typed!==null)toast('Request not submitted.');return;}
+ const {error}=await sb.from('account_deletion_requests').insert({user_id:session.user.id});
+ if(error)return toast(error.message);
+ await loadAccountDeletionRequest();toast('Deletion request recorded. Account not yet deleted.');
+}
+async function cancelAccountDeletionRequest(){
+ if(!confirm('Cancel your pending account deletion request?'))return;
+ const {error}=await sb.from('account_deletion_requests').delete().eq('user_id',session.user.id).eq('status','pending');
+ if(error)return toast(error.message);
+ await loadAccountDeletionRequest();toast('Pending request canceled');
+}
+
 async function getFollowInfo(userId){
   const [followers,following,mine]=await Promise.all([
     sb.from('player_follows').select('*',{count:'exact',head:true}).eq('following_id',userId),
@@ -1294,6 +1362,13 @@ async function renderAccountAdvancedStats(){
 }
 async function showPlayerProfile(userId){
   if(!currentLeague)return;
+  if(userId!==session?.user?.id){
+    let safety;try{safety=await getPlayerSafetyState(userId)}catch(e){return toast(e.message)}
+    if(safety.relation){
+      $('playerProfileContent').innerHTML=`<div class="card" style="padding:20px;text-align:center"><div style="font-size:35px">🛡️</div><h2>${safety.myBlock?'Blocked player':'Profile unavailable'}</h2><p class="safetyNote">${safety.myBlock?'You have blocked this player. You can unblock them below.':'This player is unavailable for social interactions.'} Public match results and rankings are not changed.</p>${safety.myBlock?`<button class="btn" onclick="togglePlayerBlock('${userId}')">Unblock Player</button>`:''}</div>`;
+      showPage('profilePage');return;
+    }
+  }
   const [pr,hr,chr,followInfo,hsr,achr]=await Promise.all([
     sb.rpc('get_player_profile',{p_league_id:currentLeague.id,p_user_id:userId}),
     sb.rpc('get_player_match_history',{p_league_id:currentLeague.id,p_user_id:userId}),
@@ -1320,7 +1395,7 @@ async function showPlayerProfile(userId){
         <div><div class="followStats"><span><b>${followInfo.followers}</b> followers</span><span><b>${followInfo.following}</b> following</span></div></div>
       </div>
       <div class="profileRankRow">${rankImg(p.elo,'lg')}<div class="grow"><b style="font-size:20px">${escapeHtml(rankFor(p.elo)[0])}</b>${progressMarkup(p.elo)}</div></div>
-      ${userId!==session.user.id?`<button class="btn ${followInfo.isFollowing?'':'primary'} followBtn" onclick="toggleFollow('${userId}')">${followInfo.isFollowing?'✓ Following':'＋ Follow'}</button>`:''}
+      ${userId!==session.user.id?`<div class="playerSafetyActions"><button class="btn ${followInfo.isFollowing?'':'primary'}" onclick="toggleFollow('${userId}')">${followInfo.isFollowing?'✓ Following':'＋ Follow'}</button><button class="btn danger" onclick="togglePlayerBlock('${userId}')">Block</button></div>`:''}
       <div class="profileMetrics">
         <div class="profileMetric"><small>Current ELO</small><b>${p.elo}</b></div>
         <div class="profileMetric"><small>Peak ELO</small><b>${peak}</b></div>
@@ -2002,7 +2077,7 @@ function renderTrainingTrends(){
   $('trainingTrendSummary').textContent=`Last 8 weeks: ${totalSessions} practice session${totalSessions===1?'':'s'} · ${trainingTimeText(totalMinutes)} logged court time. These totals include training logs only, not official matches.`;
 }
 
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus()}}
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.bottom button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));if(id==='globalLeague'){loadGlobalLeague();loadSeason();}if(id==='leagues')renderLeagues();if(id==='matches'){renderMatches();loadTournaments();loadPlayPosts();loadGameNights();}if(id==='account'){renderAccountHub();renderAccountAdvancedStats();renderAccountAchievements();renderFollowingList();loadModerationQueue();loadNotificationSettings();refreshPhonePushStatus();renderBlockedPlayers();loadAccountDeletionRequest()}}
 document.querySelectorAll('.bottom button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 sb.auth.getSession().then(({data})=>boot(data.session));sb.auth.onAuthStateChange((_e,s)=>{if(s&&!session)boot(s)});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
