@@ -567,7 +567,7 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
 
 <div id="matchesTournaments">
 <div id="liveTournamentsStrip"></div>
-<div class="hero" style="margin-top:18px"><h1>🏆 Tournaments</h1><p class="muted">Create and manage club tournaments right here under Matches.</p><div class="actions"><button class="btn primary" onclick="openTournamentCreator()">＋ Create Tournament</button><button class="btn" onclick="loadTournaments(true)">Refresh</button></div></div>
+<div class="hero" style="margin-top:18px"><h1>🏆 Tournaments</h1><p class="muted">Clubs can host tournaments that players from other clubs can join. Create an Open Tournament or keep it club-only.</p><div class="actions"><button class="btn primary" onclick="openTournamentCreator()">＋ Create Tournament</button><button class="btn" onclick="loadTournaments(true)">Refresh</button></div></div>
   <div id="tournamentCreator" class="card hidden" style="padding:16px">
     <b>Create Tournament</b>
     <div class="field"><label>Tournament name</label><input id="tournamentName" maxlength="32" placeholder="Season 1 Cup"></div>
@@ -575,7 +575,8 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
     <div class="field"><label>Maximum players</label><select id="tournamentSize" onchange="renderTournamentEntrants()"><option value="4">Up to 4 players</option><option value="8">Up to 8 players</option><option value="16">Up to 16 players</option><option value="32">Up to 32 players</option></select></div>
     <div class="field"><label>Tournament ranking</label><select id="tournamentRanked"><option value="ranked">🏆 Ranked — W/L + ELO</option><option value="unranked">🎾 Unranked — W/L only</option></select></div>
     <div class="sub" style="margin:8px 0 12px">Single elimination uses top-seed byes. Double elimination removes a player after two losses and uses a championship/reset final when needed. Round robin gives everyone a match against every other entrant.</div>
-    <div class="field"><label>Choose players</label><div id="tournamentEntrants"></div></div>
+    <div class="field"><label>Who can enter?</label><select id="tournamentAccess" onchange="renderTournamentEntrants()"><option value="open">🌐 Open — players from any club can join</option><option value="club">🔒 Club-only — choose players now</option></select><div class="sub" style="margin-top:8px">Open tournaments appear in other clubs too. Players register themselves, then the organizer starts the bracket.</div></div>
+    <div class="field" id="tournamentEntrantsField"><label>Choose players</label><div id="tournamentEntrants"></div></div>
     <div class="recordNote">Ranked tournaments change ELO. Unranked tournaments still count toward W/L, streak, and point differential.</div>
     <div class="actions"><button class="btn" onclick="closeTournamentCreator()">Cancel</button><button class="btn primary" onclick="createTournament()">Create Tournament</button></div>
   </div>
@@ -1803,9 +1804,23 @@ function getTournaments(){return tournamentCache||[]}
 function normalizeTournament(row){const s=row.state||{};return {...row,...s,id:row.id,name:row.name,format:row.format,maxSize:row.max_size,status:row.status,organizerId:row.organizer_id,ranked:!!row.ranked,createdAt:row.created_at,updatedAt:row.updated_at}}
 async function loadTournaments(showToast=false){
   if(!currentLeague){tournamentCache=[];renderTournaments();return}
-  const {data,error}=await sb.from('tournaments').select('*').eq('league_id',currentLeague.id).order('created_at',{ascending:false});
+  // Host-club tournaments plus public tournaments hosted anywhere in Paddle League.
+  const {data,error}=await sb.from('tournaments').select('*')
+    .or(`league_id.eq.${currentLeague.id},is_public.eq.true`)
+    .order('created_at',{ascending:false}).limit(100);
   if(error){if(showToast)toast(error.message);return}
-  tournamentCache=(data||[]).map(normalizeTournament);renderTournaments();if(showToast)toast('Tournaments refreshed')
+  const openIds=(data||[]).filter(t=>t.is_public&&t.status==='OPEN').map(t=>t.id);
+  let signups=[];
+  if(openIds.length){
+    const registered=await sb.from('tournament_signups').select('tournament_id,user_id').in('tournament_id',openIds);
+    if(registered.error){if(showToast)toast(registered.error.message);return}
+    signups=registered.data||[];
+  }
+  tournamentCache=(data||[]).map(row=>{
+    const mine=signups.filter(s=>s.tournament_id===row.id);
+    return {...normalizeTournament(row),registrations:mine.length,joined:mine.some(s=>s.user_id===session?.user?.id)};
+  });
+  renderTournaments();if(showToast)toast('Tournaments refreshed')
 }
 function canOrganizeTournament(t){return !!session&&t.organizerId===session.user.id}
 function openTournamentCreator(){
@@ -1820,6 +1835,9 @@ function seedOrder(size){if(size===2)return[1,2];const prev=seedOrder(size/2),ou
 function nextPowerOfTwo(n){let p=2;while(p<n)p*=2;return Math.min(32,p)}
 function formatName(f){return f==='double'?'Double Elimination':f==='round_robin'?'Round Robin':'Single Elimination'}
 function renderTournamentEntrants(){
+  const isOpen=$('tournamentAccess')?.value==='open';
+  $('tournamentEntrantsField')?.classList.toggle('hidden',isOpen);
+  if(isOpen)return;
   const maxSize=+$('tournamentSize').value,seeded=[...members].sort(compareTournamentSeeds).slice(0,maxSize);
   $('tournamentEntrants').innerHTML=members.length?members.map(p=>{const s=seeded.findIndex(x=>x.user_id===p.user_id);return `<label class="entrant"><input type="checkbox" class="tEntry" value="${p.user_id}" ${s>=0?'checked':''}><span class="avatar">${initials(p.display_name)}</span><span class="grow"><b>${escapeHtml(p.display_name)}</b><span class="sub">${p.elo} ELO • ${rankFor(p.elo)[0]}${s>=0?` • projected #${s+1} seed`:''}</span></span></label>`}).join(''):'<div class="empty">No league players yet.</div>'
 }
@@ -1846,13 +1864,60 @@ function makeDoubleFinalRound(a,b,roundNo,finalType){
 }
 function makeDoubleState(players){const losses=Object.fromEntries(players.map(p=>[p.id,0]));return{players,losses,doubleRounds:[makeDoubleRound(players,losses,1)],champion:null}}
 async function createTournament(){
-  const maxSize=+$('tournamentSize').value,format=$('tournamentFormat').value,ranked=$('tournamentRanked').value==='ranked',name=$('tournamentName').value.trim()||'Club Cup',ids=[...document.querySelectorAll('.tEntry:checked')].map(x=>x.value);
-  if(ids.length<2)return toast('Choose at least 2 players.');if(ids.length>maxSize)return toast(`Choose no more than ${maxSize} players.`);if(ids.length>32)return toast('Tournaments are limited to 32 players.');
-  if(format==='round_robin'&&ids.length>16)return toast('Round robin is limited to 16 players for now so the schedule stays manageable.');
-  const players=ids.map(id=>members.find(m=>m.user_id===id)).filter(Boolean).sort(compareTournamentSeeds).map(playerObj);
+  if(!currentLeague||!canAdminClub())return toast('Only club owners or admins can create tournaments.');
+  const maxSize=+$('tournamentSize').value,format=$('tournamentFormat').value,
+    ranked=$('tournamentRanked').value==='ranked',name=$('tournamentName').value.trim()||'Club Cup',
+    open=$('tournamentAccess')?.value==='open';
+  if(open){
+    const {error}=await sb.from('tournaments').insert({
+      league_id:currentLeague.id,name,format,max_size:maxSize,organizer_id:session.user.id,
+      ranked,is_public:true,state:{players:[],champion:null},status:'OPEN'
+    });
+    if(error)return toast(error.message);
+    closeTournamentCreator();await loadTournaments();
+    toast('Open tournament created! Players from any club can join.');
+    return;
+  }
+  const ids=[...document.querySelectorAll('.tEntry:checked')].map(x=>x.value);
+  if(ids.length<2)return toast('Choose at least 2 players.');
+  if(ids.length>maxSize)return toast(`Choose no more than ${maxSize} players.`);
+  if(ids.length>32)return toast('Tournaments are limited to 32 players.');
+  if(format==='round_robin'&&ids.length>16)return toast('Round robin is limited to 16 players for now.');
+  const players=ids.map(id=>members.find(m=>m.user_id===id)).filter(Boolean)
+    .sort(compareTournamentSeeds).map(playerObj);
   const state=format==='single'?makeSingleState(players):format==='double'?makeDoubleState(players):makeRoundRobinState(players);
-  const {error}=await sb.from('tournaments').insert({league_id:currentLeague.id,name,format,max_size:maxSize,organizer_id:session.user.id,ranked,state,status:'LIVE'});
-  if(error)return toast(error.message);closeTournamentCreator();await loadTournaments();toast(`${ranked?'Ranked':'Unranked'} ${formatName(format)} tournament created!`)
+  const {error}=await sb.from('tournaments').insert({
+    league_id:currentLeague.id,name,format,max_size:maxSize,organizer_id:session.user.id,
+    ranked,is_public:false,state,status:'LIVE'
+  });
+  if(error)return toast(error.message);
+  closeTournamentCreator();await loadTournaments();
+  toast(`${ranked?'Ranked':'Unranked'} ${formatName(format)} club tournament created!`);
+}
+async function joinOpenTournament(id){
+  const {error}=await sb.rpc('join_open_tournament',{p_tournament_id:id});
+  if(error)return toast(error.message);
+  await loadTournaments();toast('You are registered! 🏆');
+}
+async function leaveOpenTournament(id){
+  const {error}=await sb.rpc('leave_open_tournament',{p_tournament_id:id});
+  if(error)return toast(error.message);
+  await loadTournaments();toast('You left the tournament.');
+}
+async function startOpenTournament(id){
+  const t=tournamentCache.find(x=>x.id===id);
+  if(!t||!canOrganizeTournament(t)||t.status!=='OPEN')return toast('Only the organizer can start registration.');
+  const {data,error}=await sb.rpc('get_open_tournament_entrants',{p_tournament_id:id});
+  if(error)return toast(error.message);
+  const list=(data||[]).sort(compareTournamentSeeds),max=t.maxSize||32;
+  if(list.length<2)return toast('At least two players must register.');
+  if(list.length>max)return toast('Tournament has too many entrants.');
+  if(t.format==='round_robin'&&list.length>16)return toast('Round robin supports up to 16 players.');
+  const players=list.map(playerObj);
+  const state=t.format==='single'?makeSingleState(players):t.format==='double'?makeDoubleState(players):makeRoundRobinState(players);
+  const start=await sb.rpc('start_open_tournament',{p_tournament_id:id,p_state:state});
+  if(start.error)return toast(start.error.message);
+  await loadTournaments();toast('Tournament started — bracket is live! 🏆');
 }
 async function saveTournamentState(t){
   const state={players:t.players||[],bracketSize:t.bracketSize||null,rounds:t.rounds||null,rrMatches:t.rrMatches||null,losses:t.losses||null,doubleRounds:t.doubleRounds||null,champion:t.champion||null};
@@ -1934,7 +1999,9 @@ function openTournamentViewer(tid){
   const t=tournamentCache.find(x=>x.id===tid);if(!t)return toast('Tournament not found.');
   $('viewerTournamentName').textContent=t.name||'Tournament';
   $('viewerTournamentSub').textContent=`${t.status} • ${formatName(t.format)} • ${t.ranked?'Ranked':'Unranked'} • ${t.players?.length||0} players`;
-  $('viewerTournamentBody').innerHTML=renderTournamentViewerBody(t);
+  $('viewerTournamentBody').innerHTML=t.status==='OPEN'
+    ?`<div class="card"><div class="cardHead"><b>🌐 Registration open</b><span class="pill">${t.registrations||0}/${t.maxSize} players</span></div><div style="padding:14px">Players from any club can sign up while registration is open. The organizer starts the bracket when at least two players have registered.</div></div>`
+    :renderTournamentViewerBody(t);
   $('tournamentViewerOverlay').classList.remove('hiddenImportant');
 }
 function closeTournamentViewer(e){if(e&&e.target!==$('tournamentViewerOverlay'))return;$('tournamentViewerOverlay').classList.add('hiddenImportant')}
@@ -1987,6 +2054,7 @@ function pastTournamentCard(t){
 function renderTournaments(){
   const all=[...getTournaments()];
   const live=all.filter(t=>t.status==='LIVE');
+  const registration=all.filter(t=>t.status==='OPEN'&&t.is_public);
   const past=all.filter(t=>t.status==='COMPLETE'||!!t.champion).sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt));
 
   const liveStrip=$('liveTournamentsStrip');
@@ -1999,6 +2067,25 @@ function renderTournaments(){
 
   const el=$('tournamentList');
   if(!currentLeague){el.innerHTML='<div class="card"><div class="empty">Choose a league to view tournaments.</div></div>';return}
+
+  const registrationHtml=registration.length?`
+    <div class="feedTitle"><h2 style="margin:0">Open Tournaments</h2><span class="pill">${registration.length} JOINABLE</span></div>
+    ${registration.map(t=>{
+      const count=t.registrations||0,full=count>=t.maxSize;
+      const myClub=t.league_id===currentLeague.id;
+      return `<div class="card"><div class="cardHead"><div>
+        <div class="tourneyTitle">🌐 ${escapeHtml(t.name)}</div>
+        <div class="sub">${myClub?'Your club is hosting':'Hosted by another club'} • ${formatName(t.format)} • ${t.ranked?'Ranked':'Unranked'}</div>
+        <div class="sub">${count}/${t.maxSize} registered • Players from any club welcome</div>
+        </div><span class="pill beta">REGISTRATION OPEN</span></div>
+        <div style="padding:0 14px 14px"><div class="actions">
+        ${t.joined?`<button class="btn" onclick="leaveOpenTournament('${t.id}')">Leave Tournament</button>`:
+          `<button class="btn primary" ${full?'disabled':''} onclick="joinOpenTournament('${t.id}')">${full?'Full':'Join Tournament'}</button>`}
+        <button class="btn" onclick="openTournamentViewer('${t.id}')">Details</button></div>
+        ${canOrganizeTournament(t)?`<div class="actions" style="margin-top:8px"><button class="btn primary" ${count<2?'disabled':''} onclick="startOpenTournament('${t.id}')">▶ Start Bracket (${count} players)</button><button class="btn danger" onclick="deleteTournament('${t.id}')">Delete</button></div>`:''}
+        </div></div>`
+    }).join('')}
+  `:'';
 
   const currentHtml=live.length?`
     <div class="feedTitle"><h2 style="margin:0">Current Tournaments</h2><span class="pill">${live.length} LIVE</span></div>
@@ -2021,7 +2108,7 @@ function renderTournaments(){
     ${past.length?past.map(pastTournamentCard).join(''):'<div class="card"><div class="empty">Finished tournaments will appear here with the champion and final bracket. 🏆</div></div>'}
   `;
 
-  el.innerHTML=currentHtml+pastHtml;
+  el.innerHTML=registrationHtml+currentHtml+pastHtml;
 }
 function setPlayPostType(t){playPostType=t;$('playType1s')?.classList.toggle('on',t==='1s');$('playType2s')?.classList.toggle('on',t==='2s')}
 function openPlayPostForm(){if(!currentLeague)return toast('Choose a club first');$('playPostForm').classList.remove('hidden');const dl=$('playCourtOptions');if(dl)dl.innerHTML=(nearbyCourts||[]).slice(0,50).map(c=>`<option value="${escapeHtml(c.name||'')}"></option>`).join('');const d=new Date(Date.now()+3600000);d.setMinutes(Math.ceil(d.getMinutes()/15)*15,0,0);$('playPostTime').value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}

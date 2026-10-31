@@ -1,28 +1,31 @@
-PADDLE LEAGUE — ADMIN SUPPORT INBOX V1
-October 29, 2026
+PADDLE LEAGUE — CROSS-CLUB OPEN TOURNAMENTS V1
+October 30, 2026
 
-INSTALL: Replace the same five files in the Paddle-league GitHub repository root on branch main. Vercel redeploys automatically.
+INSTALL ON IPHONE:
+Replace the same 5 files in the GitHub Paddle-league repo root, branch main:
+  index.html
+  manifest.webmanifest
+  sw.js
+  vercel.json
+  README.txt
+Commit the changes; Vercel deploys automatically. Refresh Paddle League on both devices.
 
-FILES: index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
+DATABASE: The two new Supabase migrations for public tournament registration and cross-club tournament results have ALREADY been applied to the connected production database. Do not run SQL manually.
 
-NEW FEATURE: Under Account > Privacy & Support, an Admin Support Inbox appears ONLY for a designated support administrator. Review up to 100 recent tickets, filter by status, search by subject/category, expand to see messages and contact email, and save status Open, Reviewing, or Closed. Status changes appear in the sender's Support History.
+WHAT'S NEW:
+- A club owner/admin can choose "Open — players from any club can join" when creating a tournament.
+- Open tournaments start in registration status; any signed-in active player who belongs to any club can register without joining the host club.
+- Under Matches > Tournaments, open tournaments hosted by other clubs are visible to registered users, with Join, Leave and registration counts.
+- An organizer starts the bracket after at least two players have registered. Participants are seeded by global ELO; single, double and round-robin brackets reuse the existing tournament engine.
+- Club-only preselected-player tournaments remain available, and previous tournaments retain their settings.
+- The backend accepts a verified entrant from another club when the organizer enters official scores, preserving ranked vs unranked behavior.
+- Match results should appear in players' global match history.
 
-SECURITY: Support admin membership is managed in Supabase public.support_admins (not by display name or club ownership). Exactly one existing account was granted access, based on the previously confirmed beta test ticket. No client permission to add administrators. Ticket privacy is enforced by RLS; status updates are applied by the restricted Supabase RPC support_admin_set_ticket_status.
+SAFE TEST:
+1. Switch to a club you own or administer (e.g., Paddle players).
+2. Create Tournament > Who can enter? > Open, Unranked, max 4, choose format Single Elimination.
+3. Join your own tournament, then ask someone in a different club to refresh Matches and Join Tournament.
+4. After at least 2 register, organizer taps Start Bracket.
+5. Enter a test score, check advancement and both players' histories. Unranked tournament results still affect W/L and streak, but do NOT change ELO.
 
-TEST:
-1) Upload all 5 files to GitHub, open Paddle League, Account > Privacy & Support.
-2) Admin Support Inbox should appear below Contact Support. There should be 1 open ticket marked 'Test'.
-3) Expand it, choose Reviewing, Save status. Confirm the counters and your own Support History update.
-4) Open in another player's account; admin card should NOT appear and the backend must deny reading other players' tickets.
-
-LIMITS: Inbox handles status only, not reply emails. It currently shows the latest 100 tickets and requires manual refresh. Admins must handle sensitive requests carefully. No actual emails are sent by changing status.
-
-
-ACCOUNT DELETION V3 (2026-10-29)
-- Privacy & Support and Admin Support Inbox are preserved.
-- Account > Safety & Privacy > Account Deletion now has a non-destructive Check deletion readiness control.
-- Server: delete-paddle-account Edge Function v2 deployed separately, with protected Supabase deletion logic.
-- Database: anonymous historical player profiles preserve other players' match scores; the authenticated account and private content are removed on completed deletion.
-- Club owners and people in active events are blocked from automatic deletion until safely resolved.
-- CRITICAL: Do not test actual deletion on your primary account. No live deletion has been tested yet. Test only with a disposable account that has explicitly consented to permanent removal.
-- App Store launch still requires full deletion testing, administrator processing of blocked requests, security review, and legal/privacy review of retained match records.
+NOTE: No end-to-end two-account tournament test has been completed yet. Do not treat this as App Store release-ready until that test and security audit pass.
