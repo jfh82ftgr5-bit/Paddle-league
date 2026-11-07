@@ -1,28 +1,28 @@
-PADDLE LEAGUE — MATCH RECOVERY V4
+PADDLE LEAGUE — 24-HOUR WAITING LOBBIES + CLEAN MATCH VIEW V5
 November 7, 2026
 
-FIX: Active match sessions reappear when Paddle League is closed or the phone is restarted.
-- Matches page shows Unfinished Matches with a Resume button.
-- Automatically reopens the latest unfinished match in the current club in the Matches screen without redirecting away from Home.
-- Works for both ranked and casual sessions, including preexisting unfinished matches; scored/official matches remain in History.
-- Match codes are retrieved from a signed-in user's own participant records. No scores, match state, ELO, notifications, or OneSignal configuration were changed.
+Changes:
+- Waiting ranked and casual match lobbies are automatically marked CANCELLED after 24 hours, checked every 15 minutes.
+- LIVE and AWAITING_CONFIRMATION matches are never automatically expired.
+- No ELO, rank, score or completed match records are changed by expiration.
+- Matches page now shows one primary unfinished match, other unfinished matches hidden in an expandable section.
+- Creators can CANCEL a waiting match manually from the lobby or the Unfinished Matches card.
+- Old waiting rooms (already older than 24 hours) are filtered from V5 immediately and automatically cancelled by the scheduled job.
+- Keeps previous training, notifications, follower deep linking and other features.
 
-DATABASE: The safe, read-only RPC list_my_active_matches_v1 was added to the connected Supabase production project already. Do NOT run migrations manually. It returns only the signed-in player's unfinished matches (waiting, live, awaiting_confirmation), up to 20 from the last 90 days, and cannot be called anonymously.
+PRODUCTION SUPABASE: Applied migrations already, including read RPC list_my_active_matches_v2,
+creator-only cancel RPC cancel_my_waiting_match_v1, expire_waiting_match_sessions_v1 and scheduled job
+paddle-waiting-match-expiry-v5. Do NOT run SQL manually.
 
-INSTALL:
-Replace these same 5 files in the GitHub Paddle-league repo root, branch main:
-  index.html
-  manifest.webmanifest
-  sw.js
-  vercel.json
-  README.txt
-Commit changes and wait for Vercel deployment. Reload Home Screen app.
+INSTALL (same 5-file method): Replace exactly these files in the Paddle-league repo root on GitHub main:
+index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
+Commit and let Vercel deploy. Refresh home-screen Paddle League on both iPhones.
 
 TEST:
-1. Open Matches and confirm Unfinished Matches displays the old game if it still has an active status. Tap Resume.
-2. Create or join a NEW unranked/casual 1v1 match for testing; do not enter scores.
-3. Close Paddle League completely and reopen it, go to Matches. Verify lobby and same match code are still there.
-4. Have the other player refresh/resume their lobby to verify both see the same players and status.
-5. Finish the match with actual scores only when ready; official matches should disappear from Unfinished Matches and remain in History.
+1. Create one CASUAL 1v1 lobby. Current Match should appear, and creator should see Cancel.
+2. Close/reopen app, and verify the match lobby can still be resumed.
+3. Cancel that waiting lobby. It should disappear from the unfinished section; no ELO change.
+4. LIVE/awaiting-confirmation matches should remain resumeable after restart.
+5. After 24 hours, waiting lobbies vanish from the unfinished list; cron checks every 15 minutes.
 
-LIMIT: Browser JavaScript syntax and mocked recovery behavior were checked, but a two-phone live end-to-end test remains pending.
+Note: JS syntax is checked, but end-to-end manual two-device testing is still needed.

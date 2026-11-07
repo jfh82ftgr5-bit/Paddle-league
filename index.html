@@ -558,7 +558,7 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
 </div>
 
 <div id="activeMatchRecovery" class="card hidden">
-  <div class="cardHead"><div><b>🎾 Unfinished Matches</b><div class="sub">Your matches are saved, even after closing Paddle League.</div></div><button class="btn" onclick="loadUnfinishedMatches()">Refresh</button></div>
+  <div class="cardHead"><div><b>🎾 Your Current Match</b><div class="sub">Matches stay saved. Waiting lobbies cancel after 24 hours.</div></div><button class="btn" onclick="loadUnfinishedMatches()">Refresh</button></div>
   <div id="activeMatchRecoveryList"></div>
 </div>
 
@@ -1400,32 +1400,44 @@ function renderOnlinePlayers(){
   count.textContent=`${onlinePlayers.length} ONLINE`;
   el.innerHTML=onlinePlayers.length?onlinePlayers.map(p=>`<div class="row"><div class="onlineDot"></div><div class="avatar">${initials(p.display_name)}</div><div class="grow"><div class="name">${escapeHtml(p.display_name)} ${roleBadge(clubRoles[p.user_id]||'member')}</div><div class="sub">${p.elo} ELO${p.court_name?` • Near ${escapeHtml(p.court_name)}`:''}</div></div><span class="pill">${p.seconds_ago<60?'NOW':Math.ceil(p.seconds_ago/60)+'m'}</span></div>`).join('')+'<div class="privacyNote" style="padding:0 13px 12px">Only online status and the court someone chose are shown — never their exact live location.</div>':'<div class="empty">Nobody else has checked in recently.</div>';
 }
-// Match recovery V4: fetch only the signed-in player's unfinished sessions.
-// The database function checks auth.uid() against participant rows; do not
-// expose match codes through unrestricted table reads.
+// Match recovery V5: one primary match with older unfinished matches collapsed.
+// Both RPCs check the authenticated account; do not query raw casual tables.
 function renderUnfinishedMatches(){
   const card=$('activeMatchRecovery'),list=$('activeMatchRecoveryList');
   if(!card||!list)return;
   const visible=unfinishedMatches.filter(m=>myLeagues.some(l=>l.id===m.league_id));
   card.classList.toggle('hidden',visible.length===0);
-  list.innerHTML=visible.map(m=>{
+  if(!visible.length){list.innerHTML='';return;}
+  const priority=m=>({awaiting_confirmation:0,live:1,waiting:2})[m.match_status]??3;
+  const sorted=[...visible].sort((a,b)=>priority(a)-priority(b)||
+    Number(b.league_id===currentLeague?.id)-Number(a.league_id===currentLeague?.id)||
+    Date.parse(b.created_at)-Date.parse(a.created_at));
+  const matchRow=(m,isCurrent)=>{
     const club=myLeagues.find(l=>l.id===m.league_id);
     const shown=(activeMatchCode===m.match_code&&playMode===m.match_mode&&currentLeague?.id===m.league_id&&!!activeMatch);
-    return `<div class="row"><div class="grow"><b>${m.match_mode==='casual'?'🎾 Casual':'🏆 Ranked'} • ${escapeHtml(m.match_code)}</b><div class="sub">${escapeHtml(club?.name||'Club')} • ${escapeHtml(statusText(m.match_status))}</div></div><button class="btn ${shown?'':'primary'}" onclick="resumeUnfinishedMatch('${m.match_id}')">${shown?'Viewing':'Resume'}</button></div>`;
-  }).join('');
+    const canCancel=m.is_creator&&m.match_status==='waiting';
+    const timestamp=m.created_at?new Date(m.created_at).toLocaleString():'';
+    const expires=(m.match_status==='waiting')?'<div class="sub">Auto-cancels 24 hours after creation if still waiting</div>':'';
+    return `<div class="row" style="align-items:flex-start;flex-wrap:wrap"><div class="grow" style="min-width:150px"><b>${m.match_mode==='casual'?'🎾 Casual':'🏆 Ranked'} • ${escapeHtml(m.match_code)}</b><div class="sub">${escapeHtml(club?.name||'Club')} • ${escapeHtml(statusText(m.match_status))}</div>${isCurrent?'':`<div class="sub">Created ${escapeHtml(timestamp)}</div>`}${isCurrent?expires:''}</div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end"><button class="btn ${shown?'':'primary'}" onclick="resumeUnfinishedMatch('${m.match_id}')">${shown?'Viewing':'Resume'}</button>${canCancel?`<button class="btn dangerBtn" onclick="cancelWaitingMatch('${m.match_id}')">Cancel</button>`:''}</div></div>`;
+  };
+  const others=sorted.slice(1);
+  list.innerHTML=matchRow(sorted[0],true)+(others.length?
+    `<details style="border-top:1px solid #262c3c"><summary style="cursor:pointer;padding:13px 15px;font-size:11px;font-weight:850;color:#b9a7ff">Other unfinished matches (${others.length})</summary>${others.map(m=>matchRow(m,false)).join('')}</details>`:'');
 }
 async function loadUnfinishedMatches(autoRestore=false){
   if(!session?.user?.id||loadingUnfinishedMatches)return;
   loadingUnfinishedMatches=true;
   try{
     const userId=session.user.id;
-    const {data,error}=await sb.rpc('list_my_active_matches_v1');
+    const {data,error}=await sb.rpc('list_my_active_matches_v2');
     if(error)throw error;
     if(session?.user?.id!==userId)return;
     unfinishedMatches=(data||[]).filter(m=>['casual','ranked'].includes(m.match_mode)&&myLeagues.some(l=>l.id===m.league_id));
+    // The database excludes old waiting rooms. Clear stale UI lobbies on refresh.
+    if(activeMatchCode && !unfinishedMatches.some(m=>m.match_code===activeMatchCode&&m.match_mode===playMode)){
+      if(activeMatch?.status==='waiting'){activeMatchCode=null;activeMatch=null;renderVerifiedLobby();}
+    }
     renderUnfinishedMatches();
-    // Restore the newest match in the current club. Do not redirect the user
-    // away from Home on startup, and don't overwrite notification navigation.
     if(autoRestore&&!activeMatchCode){
       const recent=unfinishedMatches.find(m=>m.league_id===currentLeague?.id);
       if(recent)await resumeUnfinishedMatch(recent.match_id,true);
@@ -1447,14 +1459,25 @@ async function resumeUnfinishedMatch(matchId,automatic=false){
   setPlayMode(m.match_mode);
   activeMatchCode=m.match_code;
   await refreshVerifiedMatch();
-  if(!activeMatch){
-    activeMatchCode=null;
-    if(!automatic)toast('Could not reopen this match.');
+  if(!activeMatch||activeMatch.status==='cancelled'){
+    activeMatchCode=null;activeMatch=null;renderVerifiedLobby();
+    if(!automatic)toast('That lobby has expired or is no longer available.');
+    void loadUnfinishedMatches();
     return false;
   }
   renderUnfinishedMatches();
   if(!automatic){showPage('matches');$('verifiedLobby')?.scrollIntoView({block:'start',behavior:'smooth'});}
   return true;
+}
+async function cancelWaitingMatch(matchId){
+  const match=unfinishedMatches.find(m=>m.match_id===matchId);
+  if(!match||match.match_status!=='waiting'||!match.is_creator){toast('Only the match creator can cancel a waiting lobby.');return;}
+  if(!confirm('Cancel this waiting match? Anyone with the code will no longer be able to join. This does not change ELO or match records.'))return;
+  const {data,error}=await sb.rpc('cancel_my_waiting_match_v1',{p_match_id:match.match_id,p_mode:match.match_mode});
+  if(error||!data){toast(error?.message||'This match is no longer waiting. Refresh the list.');return;}
+  if(activeMatchCode===match.match_code&&playMode===match.match_mode){activeMatchCode=null;activeMatch=null;renderVerifiedLobby();}
+  await loadUnfinishedMatches();
+  toast('Waiting lobby cancelled. No ELO change.');
 }
 
 function setPlayMode(mode){
@@ -1499,7 +1522,7 @@ function renderVerifiedLobby(){
   const my=ps.find(p=>p.user_id===session?.user?.id);
   let actions='';
   if(activeMatch.status==='waiting'){
-    actions=`<div class="lobbyActions"><button class="btn" onclick="copyMatchCode()">Copy Code</button><button class="btn" onclick="refreshVerifiedMatch()">Refresh</button></div>`;
+    actions=`<div class="lobbyActions"><button class="btn" onclick="copyMatchCode()">Copy Code</button><button class="btn" onclick="refreshVerifiedMatch()">Refresh</button>${activeMatch.created_by===session?.user?.id?`<button class="btn dangerBtn" onclick="cancelWaitingMatch('${activeMatch.match_id}')">Cancel Lobby</button>`:''}</div>`;
   }else if(activeMatch.status==='live'){
     actions=`<div class="formrow"><div class="field"><label>Team 1 Score</label><input id="verifiedScore1" type="number" min="0" value="11"></div><div class="field"><label>Team 2 Score</label><input id="verifiedScore2" type="number" min="0" value="7"></div></div><button class="btn primary full" style="margin-top:10px" onclick="submitVerifiedScore()">Submit Final Score</button><div class="privacyNote">${playMode==='ranked'?'Submitting does not change ELO yet. Someone on the other team must confirm it.':'Someone on the other team confirms the score. Casual results never change ELO.'}</div>`;
   }else if(activeMatch.status==='awaiting_confirmation'){
