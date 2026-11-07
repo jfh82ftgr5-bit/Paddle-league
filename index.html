@@ -23,6 +23,11 @@ window.OneSignalDeferred.push(async function(OneSignal) {
       serviceWorkerParam: { scope: "/" }
     });
     window.PaddleOneSignal = OneSignal;
+    // Route notification clicks after the user session and clubs finish loading.
+    OneSignal.Notifications.addEventListener('click', function(event) {
+      try { queuePushNavigation(event.notification || {}); }
+      catch (error) { console.warn('Push click routing failed', error); }
+    });
   } catch (e) {
     console.warn("OneSignal init failed", e);
   }
@@ -800,6 +805,53 @@ async function openNotification(id){
   if(n.type==='follow'&&n.entity_id&&currentLeague){try{await showPlayerProfile(n.entity_id);return}catch(e){}}
   showPage('home')
 }
+// Push tap navigation V1. The existing notification table remains the source of
+// truth for the destination and user permissions. No additional push permission
+// or service-worker changes are needed.
+let pendingPushTap=null, pushTapRouting=false, pushAppReady=false;
+function queuePushNavigation(payload){
+  // OneSignal can provide custom data, a notification ID, and/or the displayed
+  // title/body. Match against this signed-in user's own notification records.
+  const extra=payload.additionalData||payload.additional_data||{};
+  pendingPushTap={
+    databaseId:String(extra.notification_id||extra.notificationId||extra.db_notification_id||''),
+    entityId:String(extra.entity_id||extra.entityId||extra.actor_id||extra.actorId||''),
+    kind:String(extra.type||extra.notification_type||''),
+    title:String(payload.title||payload.heading||''),
+    body:String(payload.body||payload.content||'')
+  };
+  if(pushAppReady)void routePendingPushTap();
+}
+async function routePendingPushTap(){
+  if(!pushAppReady||!session||pushTapRouting||!pendingPushTap)return;
+  pushTapRouting=true;
+  const tap=pendingPushTap;
+  pendingPushTap=null;
+  try{
+    await loadNotifications(true);
+    let match=null;
+    if(tap.databaseId)match=notifications.find(n=>n.id===tap.databaseId)||null;
+    // Only match a displayed notification by its exact title + body and
+    // recency. If multiple records match, avoid guessing the recipient.
+    if(!match && tap.title && tap.body){
+      const matches=notifications.filter(n=>n.title===tap.title&&n.body===tap.body&&
+        Date.now()-new Date(n.created_at).getTime()<24*60*60*1000);
+      if(matches.length===1)match=matches[0];
+    }
+    if(!match && tap.entityId && tap.kind==='follow'){
+      const matches=notifications.filter(n=>n.type==='follow'&&n.entity_id===tap.entityId&&
+        Date.now()-new Date(n.created_at).getTime()<24*60*60*1000);
+      if(matches.length===1)match=matches[0];
+    }
+    if(match){await openNotification(match.id);return;}
+    // Open the notification inbox rather than an unrelated player profile.
+    await openNotifications();
+  }catch(error){console.warn('Could not route push notification',error);}
+  finally{
+    pushTapRouting=false;
+    if(pendingPushTap)void routePendingPushTap();
+  }
+}
 async function loadNotificationSettings(){
   if(!session)return;
   let {data,error}=await sb.from('notification_settings').select('*').eq('user_id',session.user.id).maybeSingle();
@@ -925,7 +977,7 @@ function rankProgressData(elo){const i=rankIndex(elo),cur=tiers[i],next=tiers[i+
 function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class="rankIcon ${cls}" src="${rankImages[d.i]}" alt="${d.cur[0]} rank badge">`}
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
-async function boot(s){if(session?.user?.id!==s?.user?.id){adminSupportAuthorized=false;adminSupportTickets=[];adminSupportFilter='all';adminSupportSearch='';$('adminSupportInboxCard')?.classList.add('hidden');trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice();if(new URLSearchParams(location.search).get('view')==='support'){showPage('account');setTimeout(()=>$('accountSupportCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200)}}
+async function boot(s){if(session?.user?.id!==s?.user?.id){adminSupportAuthorized=false;adminSupportTickets=[];adminSupportFilter='all';adminSupportSearch='';$('adminSupportInboxCard')?.classList.add('hidden');trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){pushAppReady=false;pendingPushTap=null;$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice();pushAppReady=true;if(pendingPushTap)void routePendingPushTap();if(new URLSearchParams(location.search).get('view')==='support'){showPage('account');setTimeout(()=>$('accountSupportCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200)}}
 let milestoneQueue=[];
 function milestoneSnapshotKey(){return session?`pl_milestone_snapshot_${session.user.id}`:''}
 function showMilestone(m){
