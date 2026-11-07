@@ -822,6 +822,25 @@ function queuePushNavigation(payload){
   };
   if(pushAppReady)void routePendingPushTap();
 }
+// The production send-push Edge Function supplies web_url with
+// ?notification=<database notification UUID>. iOS may launch the installed PWA
+// using this URL without emitting OneSignal's JavaScript click event.
+function captureNotificationLaunchUrl(){
+  const url=new URL(window.location.href);
+  const id=url.searchParams.get('notification');
+  if(!id)return false;
+  // Remove the one-use destination from the address bar, retaining unrelated
+  // app navigation parameters and avoiding replay on a later app launch.
+  url.searchParams.delete('notification');
+  window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))return false;
+  pendingPushTap={databaseId:id,entityId:'',kind:'',title:'',body:''};
+  if(pushAppReady)void routePendingPushTap();
+  return true;
+}
+window.addEventListener('pageshow',captureNotificationLaunchUrl);
+window.addEventListener('popstate',captureNotificationLaunchUrl);
+window.addEventListener('focus',captureNotificationLaunchUrl);
 async function routePendingPushTap(){
   if(!pushAppReady||!session||pushTapRouting||!pendingPushTap)return;
   pushTapRouting=true;
@@ -977,7 +996,7 @@ function rankProgressData(elo){const i=rankIndex(elo),cur=tiers[i],next=tiers[i+
 function rankImg(elo,cls='sm'){const d=rankProgressData(elo);return `<img class="rankIcon ${cls}" src="${rankImages[d.i]}" alt="${d.cur[0]} rank badge">`}
 function badge(elo){const t=rankFor(elo);return `<span class="badge ${t[2]}">${t[0]}</span>`}
 function progressMarkup(elo){const d=rankProgressData(elo);return `<div class="rankProgress"><i style="width:${d.pct}%"></i></div><div class="rankMeta"><span>${elo} ELO</span><span class="eloToNext">${d.next?`${d.left} ELO to ${d.next[0]}`:'MAX RANK • UNREAL'}</span></div>`}
-async function boot(s){if(session?.user?.id!==s?.user?.id){adminSupportAuthorized=false;adminSupportTickets=[];adminSupportFilter='all';adminSupportSearch='';$('adminSupportInboxCard')?.classList.add('hidden');trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){pushAppReady=false;pendingPushTap=null;$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice();pushAppReady=true;if(pendingPushTap)void routePendingPushTap();if(new URLSearchParams(location.search).get('view')==='support'){showPage('account');setTimeout(()=>$('accountSupportCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200)}}
+async function boot(s){if(session?.user?.id!==s?.user?.id){adminSupportAuthorized=false;adminSupportTickets=[];adminSupportFilter='all';adminSupportSearch='';$('adminSupportInboxCard')?.classList.add('hidden');trainingSessions=[];trainingGoals=null;trainingGoalsLoaded=false;}session=s;if(!session){pushAppReady=false;pendingPushTap=null;$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('accountEmail').textContent=session.user.email;const {data:p}=await sb.from('profiles').select('display_name').eq('id',session.user.id).maybeSingle();profile=p||{display_name:session.user.email.split('@')[0]};$('accountName').value=profile.display_name;$('welcome').textContent=`Hey ${profile.display_name}`;await loadGlobalLeague();await loadLeagues();loadTrainingSessions();loadTrainingGoals();renderRankList();renderAccountHub();await Promise.all([loadNotificationSettings(),loadNotifications(true)]);startNotificationPolling();await syncOneSignalIdentity();refreshPhonePushStatus();await checkModerationNotice();pushAppReady=true;captureNotificationLaunchUrl();if(pendingPushTap)void routePendingPushTap();if(new URLSearchParams(location.search).get('view')==='support'){showPage('account');setTimeout(()=>$('accountSupportCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200)}}
 let milestoneQueue=[];
 function milestoneSnapshotKey(){return session?`pl_milestone_snapshot_${session.user.id}`:''}
 function showMilestone(m){

@@ -1,28 +1,31 @@
-PADDLE LEAGUE — FOLLOWER PUSH TAP NAVIGATION V1
+PADDLE LEAGUE — LOCK SCREEN NOTIFICATION URL FIX V2
 November 7, 2026
 
-CHANGES:
-- Keeps the existing OneSignal push configuration and service worker unchanged.
-- Captures OneSignal notification clicks and waits until the signed-in session and clubs load.
-- Resolves the tapped alert against the signed-in user’s in-app notifications.
-- Reuses the existing openNotification() behavior, including opening follower profiles.
-- If the tapped alert cannot be matched safely, opens the notification inbox instead of guessing.
+ROOT CAUSE FOUND:
+The live Supabase send-push Edge Function already includes a URL such as:
+https://paddle-league2.vercel.app/?notification=<notification UUID>
+Previous code listened for the OneSignal JavaScript click event, but the
+installed iPhone PWA can launch through the URL without firing that event.
+The app did not read the notification query parameter, so only the app opened.
 
-INSTALL (same 5-file workflow):
-1. Replace these 5 files in the Paddle League GitHub repo root on main:
-   index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
-2. Commit and allow Vercel to deploy. Reopen the Home Screen app.
-3. Keep push notifications enabled (do not unsubscribe/reinstall).
+FIX:
+- Read the notification ID from the push launch URL on startup, page show,
+  history navigation, and focus.
+- After account loading, look up that ID in this account's notifications,
+  then use Paddle League's existing notification routing to open the profile.
+- Remove the one-time URL parameter to avoid stale repeated navigation.
+- Preserve existing OneSignal configuration, permissions and service worker.
+- No Supabase Edge Function changes or database migrations required.
+
+INSTALL:
+Replace the same 5 files in your GitHub repository's root (main branch):
+index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
+Commit, confirm Vercel deployment, and reopen Paddle League.
 
 TEST:
-1. With Paddle League closed, have Austin trigger a new follower notification.
-2. Tap it on the iPhone Lock Screen.
-3. Check whether Austin's profile opens. If not, see whether the in-app notification inbox opens.
-4. Also tap the follower alert in the in-app notification bell to verify the existing route.
+With Paddle League closed, have Austin unfollow/re-follow to create a NEW
+alert. Tap the NEW Lock Screen notification. It should open Austin's profile.
+If not, verify in-app notification bell > Austin followed you navigates to his
+profile, and confirm the deployed Vercel domain is paddle-league2.vercel.app.
 
-LIMITATION: The notification-sending Supabase Edge Function is not included in
-these 5 files. Tap navigation works when the OneSignal click event includes
-matching notification metadata or a uniquely matching title/body. If the event
-is not delivered or cannot be matched on cold launch, the server-side push
-payload may also need a URL and notification_id/entity_id. Not verified on-device.
-No database migrations are required for this frontend change.
+STATUS: JavaScript syntax verified, iPhone behavior not yet tested.
