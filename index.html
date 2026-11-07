@@ -321,6 +321,12 @@ button:active,.clickable:active{transform:scale(.985);opacity:.9}
 .progressTrendLabel{text-align:center;color:#8e95a8;font-size:9px;white-space:nowrap}
 .progressTrendSummary{margin-top:12px;color:#9ca5b7;font-size:11px;line-height:1.5}
 .progressMuted{font-size:10px;color:#8e96a8;line-height:1.5;margin-top:9px}
+.practiceHighlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.practiceHighlight{background:#0c111c;border:1px solid #292f42;border-radius:13px;padding:12px;min-width:0}
+.practiceHighlight b{display:block;font-size:18px;line-height:1.25;overflow-wrap:anywhere}
+.practiceHighlight small{display:block;color:#959eb0;font-size:9px;margin-top:5px;line-height:1.4}
+.practiceFocusMix{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.practiceFocusChip{font-size:10px;padding:7px 9px;border-radius:999px;border:1px solid #353044;background:#181626;color:#d8d0ee}
 @media(max-width:410px){.trainingQuickRow{align-items:flex-start;flex-wrap:wrap}.trainingQuickRow .sub{flex-basis:100%}.trainingQuickButtons{width:100%;justify-content:flex-end}.progressTrendValue{font-size:8px}.progressTrendLabel{font-size:8px}}
 
 
@@ -742,6 +748,10 @@ html[data-public-info] #authView,html[data-public-info] #appView,html[data-publi
         <div id="trainingGoalsView"><div class="progressMuted">Loading goals…</div></div>
         <div id="trainingGoalsEditor" class="hidden"><div class="progressGoalFields"><div class="field"><label for="trainingGoalSessions">Sessions / week</label><input id="trainingGoalSessions" type="number" min="1" max="7" step="1" inputmode="numeric" value="2"></div><div class="field"><label for="trainingGoalMinutes">Minutes / week</label><input id="trainingGoalMinutes" type="number" min="15" max="900" step="15" inputmode="numeric" value="120"></div></div><div class="progressGoalActions"><button class="btn primary" id="trainingSaveGoalBtn" onclick="saveTrainingGoals()">Save goals</button><button class="btn" onclick="cancelTrainingGoalsEditor()">Cancel</button></div></div>
       </div>
+      <div class="progressCard"><h3>✨ Practice recap</h3><div class="sub">Your personal practice patterns, not a competition. Rest and recovery days matter.</div>
+        <div id="trainingHighlights" class="practiceHighlights" aria-live="polite"></div>
+        <div id="trainingFocusMix" class="practiceFocusMix" aria-label="Your most logged practice types"></div>
+      </div>
       <div class="progressCard"><h3>📅 Activity calendar</h3><div class="sub">The days you logged practice — tap a date to see what you did.</div>
         <div class="progressCalendarNav"><button class="btn" onclick="changeTrainingCalendarMonth(-1)" aria-label="Previous month">‹</button><b id="trainingCalendarMonth">Month</b><button id="trainingCalendarNext" class="btn" onclick="changeTrainingCalendarMonth(1)" aria-label="Next month">›</button></div>
         <div id="trainingCalendarGrid" class="progressCalendar"></div><div id="trainingCalendarDetail" class="progressDayDetail" aria-live="polite">Select a day to view activity.</div>
@@ -798,13 +808,58 @@ async function openNotification(id){
   if(!n.is_read){await sb.from('notifications').update({is_read:true}).eq('id',id);n.is_read=true;renderNotifications()}
   $('notifyOverlay').classList.add('hiddenImportant');
   if(n.league_id&&myLeagues.some(l=>l.id===n.league_id)&&currentLeague?.id!==n.league_id){await selectLeague(n.league_id)}
-  if(['match_ready','match_confirmation','tournament_started','tournament_complete','tournament_match'].includes(n.type)){showPage('matches');return}
+  // Use the entity ID from the user's own notification record to open the
+  // correct match lobby or tournament bracket. Fall back to Matches safely.
+  if(['match_ready','match_confirmation'].includes(n.type)){
+    showPage('matches');
+    try{if(await openMatchFromNotification(n))return}catch(e){console.warn('Match notification navigation failed',e)}
+    toast('Open your match from the Matches tab.');return;
+  }
+  if(['tournament_started','tournament_complete','tournament_match'].includes(n.type)){
+    showPage('matches');
+    try{if(await openTournamentFromNotification(n))return}catch(e){console.warn('Tournament notification navigation failed',e)}
+    toast('Find your tournament in Matches → Tournaments.');return;
+  }
   if(['club_admin','club_owner','club_announcement'].includes(n.type)){showPage('leagues');return}
   if(n.type==='rank_up'){showPage('globalLeague');return}
   if(n.type==='moderation'){showPage('account');return}
   if(n.type==='follow'&&n.entity_id&&currentLeague){try{await showPlayerProfile(n.entity_id);return}catch(e){}}
   showPage('home')
 }
+// Notification destinations V3: only navigate to records the signed-in user
+// can already read under Supabase RLS. Notifications supply UUIDs, not URLs.
+async function openMatchFromNotification(n){
+  if(!n.entity_id||!session||!currentLeague)return false;
+  // match_ready and match_confirmation refer to match_sessions.id in the
+  // production trigger. Club membership is enforced on this table's SELECT.
+  const {data,error}=await sb.from('match_sessions').select('code')
+    .eq('id',n.entity_id).eq('league_id',currentLeague.id).maybeSingle();
+  if(error||!data?.code)return false;
+  setPlayMode('ranked');
+  activeMatchCode=data.code;
+  await refreshVerifiedMatch();
+  if(!activeMatch)return false;
+  showPage('matches');
+  $('verifiedLobby')?.scrollIntoView({block:'start',behavior:'smooth'});
+  return true;
+}
+async function openTournamentFromNotification(n){
+  if(!n.entity_id||!session)return false;
+  // Ensure current club's list has finished loading (showPage fetches async).
+  if(currentLeague)await loadTournaments();
+  let t=getTournaments().find(x=>x.id===n.entity_id);
+  if(!t){
+    // Public tournaments can be hosted in a different club. Only fetch what
+    // the signed-in user may see under tournament SELECT policies.
+    const {data,error}=await sb.from('tournaments').select('*').eq('id',n.entity_id).maybeSingle();
+    if(error||!data)return false;
+    t=normalizeTournament(data);
+    tournamentCache=[t,...tournamentCache.filter(x=>x.id!==t.id)];
+  }
+  openTournamentViewer(t.id);
+  return true;
+}
+
 // Push tap navigation V1. The existing notification table remains the source of
 // truth for the destination and user permissions. No additional push permission
 // or service-worker changes are needed.
@@ -2320,7 +2375,55 @@ function openTrainingProgress(){
   loadTrainingSessions();loadTrainingGoals();
 }
 function closeTrainingProgress(e){if(e&&e.target!==$('trainingProgressOverlay'))return;$('trainingProgressOverlay').classList.add('hiddenImportant');cancelTrainingGoalsEditor()}
-function renderTrainingProgress(){renderTrainingGoals();renderTrainingCalendar();renderTrainingTrends()}
+function renderTrainingProgress(){renderTrainingGoals();renderTrainingHighlights();renderTrainingCalendar();renderTrainingTrends()}
+function renderTrainingHighlights(){
+  const el=$('trainingHighlights'),chips=$('trainingFocusMix');
+  if(!el||!chips)return;
+  const logs=trainingSessions.filter(x=>x.session_date&&x.session_date<=trainingLocalDate());
+  if(!logs.length){
+    el.innerHTML='<div class="progressMuted" style="grid-column:1/-1">Your recap appears after you log a training session. Take recovery days whenever you need them.</div>';
+    chips.innerHTML='';return;
+  }
+  const weekKey=key=>{
+    const d=new Date(key+'T12:00:00');
+    if(Number.isNaN(d.getTime()))return '';
+    d.setDate(d.getDate()-((d.getDay()+6)%7));
+    return trainingLocalDate(d);
+  };
+  const weekSet=new Set(logs.map(x=>weekKey(x.session_date)).filter(Boolean));
+  const cursor=new Date(trainingWeekStart()+'T12:00:00');
+  // If this week hasn't had practice yet, report the last completed week.
+  // Rest days never break a daily streak because we don't track daily streaks.
+  if(!weekSet.has(trainingLocalDate(cursor)))cursor.setDate(cursor.getDate()-7);
+  let practiceWeeks=0;
+  while(practiceWeeks<52&&weekSet.has(trainingLocalDate(cursor))){
+    practiceWeeks++;cursor.setDate(cursor.getDate()-7);
+  }
+  const nowStart=new Date(trainingWeekStart()+'T12:00:00');
+  let activeRecentWeeks=0;
+  for(let j=0;j<8;j++){
+    const d=new Date(nowStart);d.setDate(d.getDate()-j*7);
+    if(weekSet.has(trainingLocalDate(d)))activeRecentWeeks++;
+  }
+  const focusCounts=new Map(),sports=new Map();
+  for(const x of logs){
+    const focus=String(x.focus||'').trim();if(focus)focusCounts.set(focus,(focusCounts.get(focus)||0)+1);
+    const sport=String(x.sport||'').trim();if(sport)sports.set(sport,(sports.get(sport)||0)+1);
+  }
+  const orderedFocus=[...focusCounts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+  const favorite=orderedFocus[0]?.[0]||'Not set';
+  const favoriteSport=[...sports].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]?.[0]||'—';
+  const cards=[
+    [String(practiceWeeks),'Consecutive practice weeks (not days)'],
+    [`${activeRecentWeeks} / 8`,'Weeks with a session, including this week'],
+    [String(focusCounts.size),'Different practice focuses explored'],
+    [favoriteSport,'Most logged sport']
+  ];
+  el.innerHTML=cards.map(([value,label])=>`<div class="practiceHighlight"><b>${escapeHtml(value)}</b><small>${escapeHtml(label)}</small></div>`).join('');
+  chips.innerHTML=`<span class="practiceFocusChip">🎯 Most logged focus: ${escapeHtml(favorite)}</span>`+
+    orderedFocus.slice(1,3).map(([name])=>`<span class="practiceFocusChip">${escapeHtml(name)}</span>`).join('');
+}
+
 function renderTrainingGoals(){
   const el=$('trainingGoalsView'),home=$('trainingGoalHome');if(!el)return;
   if(!trainingGoalsLoaded){el.innerHTML='<div class="progressMuted">Goals are unavailable right now. You can still view your calendar and trends. <button class="btn" onclick="loadTrainingGoals()">Retry</button></div>';home?.classList.add('hidden');return}

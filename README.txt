@@ -1,31 +1,38 @@
-PADDLE LEAGUE — LOCK SCREEN NOTIFICATION URL FIX V2
+PADDLE LEAGUE — NOTIFICATION ROUTING + TRAINING RECAP V3
 November 7, 2026
 
-ROOT CAUSE FOUND:
-The live Supabase send-push Edge Function already includes a URL such as:
-https://paddle-league2.vercel.app/?notification=<notification UUID>
-Previous code listened for the OneSignal JavaScript click event, but the
-installed iPhone PWA can launch through the URL without firing that event.
-The app did not read the notification query parameter, so only the app opened.
+BUILT ON THE WORKING V2 LOCK SCREEN PROFILE ROUTING
 
-FIX:
-- Read the notification ID from the push launch URL on startup, page show,
-  history navigation, and focus.
-- After account loading, look up that ID in this account's notifications,
-  then use Paddle League's existing notification routing to open the profile.
-- Remove the one-time URL parameter to avoid stale repeated navigation.
-- Preserve existing OneSignal configuration, permissions and service worker.
-- No Supabase Edge Function changes or database migrations required.
+NEW: MATCH AND TOURNAMENT NOTIFICATION NAVIGATION
+- Follower notification behavior is unchanged (verified on iPhone).
+- Match-ready and score-confirmation notifications now look up the specific
+  authorized match session, then open its ranked live/confirmation lobby.
+- Tournament started/completed/match alerts try to open the specific
+  tournament's existing bracket / spectator viewer.
+- If a destination is unavailable, open the Matches screen with a message.
+- Uses existing notification UUIDs, Supabase policies and OneSignal setup.
+  No database, Edge Function, or service-worker changes.
 
-INSTALL:
-Replace the same 5 files in your GitHub repository's root (main branch):
-index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
-Commit, confirm Vercel deployment, and reopen Paddle League.
+NEW: TRAINING PRACTICE RECAP
+- Training Progress now includes practice consistency by WEEK (not day),
+  weeks active in the last eight, focus variety, most logged sport and focus.
+- Rest days do not break a daily streak, because no daily streak is tracked.
+- Derived only from existing private training logs; no new table or tracking.
+- The existing weekly goals, calendar, and 8-week charts are preserved.
+
+INSTALL (SAME 5 FILES METHOD):
+1. Extract this ZIP.
+2. Replace all 5 files in the root of your GitHub Paddle League repo on main:
+   index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
+3. Commit and let Vercel deploy. Open the Home Screen app after deployment.
 
 TEST:
-With Paddle League closed, have Austin unfollow/re-follow to create a NEW
-alert. Tap the NEW Lock Screen notification. It should open Austin's profile.
-If not, verify in-app notification bell > Austin followed you navigates to his
-profile, and confirm the deployed Vercel domain is paddle-league2.vercel.app.
+A. Open Home > Your Training > Progress. Check Practice recap; log a sample
+   practice only if you want, and check recap updates after saving.
+B. In the in-app bell, tap a match or tournament notification if one exists.
+   New Lock Screen alerts should use the same navigation after tapping.
+C. Tap a new follower Lock Screen alert to confirm the V2 flow remains working.
 
-STATUS: JavaScript syntax verified, iPhone behavior not yet tested.
+NOTE: Only code syntax and non-live checks can be verified here. Actual match,
+notification, and iPhone navigation behavior still need device testing.
+Keep your working V2 backup in case you need to roll back.
