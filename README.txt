@@ -1,38 +1,28 @@
-PADDLE LEAGUE — NOTIFICATION ROUTING + TRAINING RECAP V3
+PADDLE LEAGUE — MATCH RECOVERY V4
 November 7, 2026
 
-BUILT ON THE WORKING V2 LOCK SCREEN PROFILE ROUTING
+FIX: Active match sessions reappear when Paddle League is closed or the phone is restarted.
+- Matches page shows Unfinished Matches with a Resume button.
+- Automatically reopens the latest unfinished match in the current club in the Matches screen without redirecting away from Home.
+- Works for both ranked and casual sessions, including preexisting unfinished matches; scored/official matches remain in History.
+- Match codes are retrieved from a signed-in user's own participant records. No scores, match state, ELO, notifications, or OneSignal configuration were changed.
 
-NEW: MATCH AND TOURNAMENT NOTIFICATION NAVIGATION
-- Follower notification behavior is unchanged (verified on iPhone).
-- Match-ready and score-confirmation notifications now look up the specific
-  authorized match session, then open its ranked live/confirmation lobby.
-- Tournament started/completed/match alerts try to open the specific
-  tournament's existing bracket / spectator viewer.
-- If a destination is unavailable, open the Matches screen with a message.
-- Uses existing notification UUIDs, Supabase policies and OneSignal setup.
-  No database, Edge Function, or service-worker changes.
+DATABASE: The safe, read-only RPC list_my_active_matches_v1 was added to the connected Supabase production project already. Do NOT run migrations manually. It returns only the signed-in player's unfinished matches (waiting, live, awaiting_confirmation), up to 20 from the last 90 days, and cannot be called anonymously.
 
-NEW: TRAINING PRACTICE RECAP
-- Training Progress now includes practice consistency by WEEK (not day),
-  weeks active in the last eight, focus variety, most logged sport and focus.
-- Rest days do not break a daily streak, because no daily streak is tracked.
-- Derived only from existing private training logs; no new table or tracking.
-- The existing weekly goals, calendar, and 8-week charts are preserved.
-
-INSTALL (SAME 5 FILES METHOD):
-1. Extract this ZIP.
-2. Replace all 5 files in the root of your GitHub Paddle League repo on main:
-   index.html, manifest.webmanifest, sw.js, vercel.json, README.txt
-3. Commit and let Vercel deploy. Open the Home Screen app after deployment.
+INSTALL:
+Replace these same 5 files in the GitHub Paddle-league repo root, branch main:
+  index.html
+  manifest.webmanifest
+  sw.js
+  vercel.json
+  README.txt
+Commit changes and wait for Vercel deployment. Reload Home Screen app.
 
 TEST:
-A. Open Home > Your Training > Progress. Check Practice recap; log a sample
-   practice only if you want, and check recap updates after saving.
-B. In the in-app bell, tap a match or tournament notification if one exists.
-   New Lock Screen alerts should use the same navigation after tapping.
-C. Tap a new follower Lock Screen alert to confirm the V2 flow remains working.
+1. Open Matches and confirm Unfinished Matches displays the old game if it still has an active status. Tap Resume.
+2. Create or join a NEW unranked/casual 1v1 match for testing; do not enter scores.
+3. Close Paddle League completely and reopen it, go to Matches. Verify lobby and same match code are still there.
+4. Have the other player refresh/resume their lobby to verify both see the same players and status.
+5. Finish the match with actual scores only when ready; official matches should disappear from Unfinished Matches and remain in History.
 
-NOTE: Only code syntax and non-live checks can be verified here. Actual match,
-notification, and iPhone navigation behavior still need device testing.
-Keep your working V2 backup in case you need to roll back.
+LIMIT: Browser JavaScript syntax and mocked recovery behavior were checked, but a two-phone live end-to-end test remains pending.
